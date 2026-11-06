@@ -162,17 +162,21 @@ fun AppleMusicV3Lyrics(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(28.dp))
                         .background(
-                            if (isActive) {
-                                Brush.horizontalGradient(
+                            brush = Brush.horizontalGradient(
+                                if (isActive) {
                                     listOf(
                                         accentColor.copy(alpha = 0.08f),
                                         textColor.copy(alpha = 0.025f),
                                         accentColor.copy(alpha = 0.08f),
-                                    ),
-                                )
-                            } else {
-                                Color.Transparent
-                            },
+                                    )
+                                } else {
+                                    listOf(
+                                        Color.Transparent,
+                                        Color.Transparent,
+                                        Color.Transparent,
+                                    )
+                                },
+                            ),
                         )
                         .border(
                             width = if (isActive) 1.dp else 0.dp,
@@ -206,7 +210,7 @@ fun AppleMusicV3Lyrics(
                             modifier = Modifier
                                 .padding(top = 8.dp, bottom = 2.dp)
                                 .graphicsLayer {
-                                    alpha = bubbleAlpha
+                                    this.alpha = bubbleAlpha
                                     scaleX = 0.96f + bubbleAlpha * 0.08f
                                     scaleY = 0.96f + bubbleAlpha * 0.08f
                                 },
