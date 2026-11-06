@@ -54,7 +54,6 @@ import com.composables.sfsymbols.SfSymbols
 import com.composables.sfsymbols.monochrome.SFArrowDownApp
 import com.composables.sfsymbols.monochrome.SFChevronLeftForwardslashChevronRight
 import com.composables.sfsymbols.monochrome.SFEllipsisBubble
-import com.composables.sfsymbols.monochrome.SFHeart
 import com.composables.sfsymbols.monochrome.SFInfoCircle
 import com.composables.sfsymbols.monochrome.SFPersonCropCircleBadgeExclamationmark
 import com.composables.sfsymbols.monochrome.SFTextDocument
@@ -62,13 +61,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.widget.Toast
 import androidx.navigation.NavController
 import com.convx.music.BuildConfig
 import com.convx.music.LocalPlayerAwareWindowInsets
-import com.convx.music.constants.DonationKofiUrl
-import com.convx.music.constants.DonationUpiId
-import com.convx.music.constants.DonationUpiUri
 import com.convx.music.R
 import com.convx.music.ui.component.IosSettingsGroup
 import com.convx.music.ui.component.IosSettingsItem
@@ -161,7 +156,7 @@ fun AboutScreen(
                     description = { Text("NexaMusic developer", color = AppTheme.colorScheme.primary) },
                     tintIcon = false,
                     iconShape = cookieShape,
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/nkosanamahungela-dev") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/tanmayy91") }
                 )
             )
         )
@@ -175,7 +170,7 @@ fun AboutScreen(
                     icon = rememberVectorPainter(SfSymbols.Monochrome.SFChevronLeftForwardslashChevronRight),
                     title = { Text(stringResource(R.string.github_repository)) },
                     description = { Text(stringResource(R.string.view_source_code)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/nkosanamahungela-dev/NexaMusic") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/tanmayy91/NexaMusic") }
                 ),
                 IosSettingsItem(
                     icon = rememberVectorPainter(SfSymbols.Monochrome.SFEllipsisBubble),
@@ -186,26 +181,6 @@ fun AboutScreen(
             )
         )
 
-        Spacer(modifier = Modifier.height(27.dp))
-
-        // Support Section
-        IosSettingsGroup(
-            title = stringResource(R.string.support_section),
-            items = listOf(
-                IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFHeart),
-                    title = { Text(stringResource(R.string.support_upi)) },
-                    description = { Text("Not available") },
-                    onClick = { Toast.makeText(context, "Not available", Toast.LENGTH_SHORT).show() }
-                ),
-                IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFHeart),
-                    title = { Text(stringResource(R.string.support_kofi)) },
-                    description = { Text("Not available") },
-                    onClick = { Toast.makeText(context, "Not available", Toast.LENGTH_SHORT).show() }
-                ),
-            )
-        )
         Spacer(modifier = Modifier.height(27.dp))
 
         // App Information Section
@@ -226,7 +201,7 @@ fun AboutScreen(
                     icon = rememberVectorPainter(SfSymbols.Monochrome.SFTextDocument),
                     title = { Text(stringResource(R.string.license)) },
                     description = { Text("GPL-3.0 • Free Open Source Software") },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/nkosanamahungela-dev/NexaMusic/blob/main/LICENSE") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/tanmayy91/NexaMusic/blob/main/LICENSE") }
                 ),
             )
         )

@@ -42,9 +42,9 @@ object UpdateNotificationHelper {
 
         // Download links for NexaMusic releases and nightly debug artifacts.
         val downloadUrl = apkUrl?.takeIf(String::isNotBlank) ?: if (versionName.contains("nightly", ignoreCase = true)) {
-            "https://nightly.link/nkosanamahungela-dev/NexaMusic/workflows/nightly.yml/main/nexamusic-gms-beta.zip"
+            "https://nightly.link/tanmayy91/NexaMusic/workflows/nightly.yml/main/nexamusic-gms-beta.zip"
         } else {
-            "https://github.com/nkosanamahungela-dev/NexaMusic/releases/download/$versionName/nexamusic-$versionName.apk"
+            "https://github.com/tanmayy91/NexaMusic/releases/download/$versionName/nexamusic-$versionName.apk"
         }
         val intent = Intent(Intent.ACTION_VIEW, downloadUrl.toUri())
 

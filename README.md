@@ -3,11 +3,11 @@
   <h1>NexaMusic</h1>
   <p><strong>An open-source Android music player with a calm, glass-inspired interface.</strong></p>
   <p>
-    <a href="https://github.com/nkosanamahungela-dev/NexaMusic/releases">
-      <img src="https://img.shields.io/github/v/release/nkosanamahungela-dev/NexaMusic?include_prereleases&display_name=tag&style=for-the-badge&logo=android&logoColor=white" alt="View the latest NexaMusic release">
+    <a href="https://github.com/tanmayy91/NexaMusic/releases">
+      <img src="https://img.shields.io/github/v/release/tanmayy91/NexaMusic?include_prereleases&display_name=tag&style=for-the-badge&logo=android&logoColor=white" alt="View the latest NexaMusic release">
     </a>
-    <a href="https://github.com/nkosanamahungela-dev/NexaMusic/releases">
-      <img src="https://img.shields.io/github/downloads/nkosanamahungela-dev/NexaMusic/total?label=Downloads&style=for-the-badge&logo=github&logoColor=white" alt="Total NexaMusic release asset downloads">
+    <a href="https://github.com/tanmayy91/NexaMusic/releases">
+      <img src="https://img.shields.io/github/downloads/tanmayy91/NexaMusic/total?label=Downloads&style=for-the-badge&logo=github&logoColor=white" alt="Total NexaMusic release asset downloads">
     </a>
   </p>
   <p>
@@ -54,14 +54,14 @@ NexaMusic brings music discovery, playback, lyrics, and your library together in
 ## Screenshots
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/nkosanamahungela-dev/NexaMusic/main/screenshots/HomeUI.png" width="30%" alt="NexaMusic Home screen">
-  <img src="https://raw.githubusercontent.com/nkosanamahungela-dev/NexaMusic/main/screenshots/AlbumUI.png" width="30%" alt="NexaMusic Album screen">
-  <img src="https://raw.githubusercontent.com/nkosanamahungela-dev/NexaMusic/main/screenshots/PlayingUI.png" width="30%" alt="NexaMusic Now Playing screen">
+  <img src="https://raw.githubusercontent.com/tanmayy91/NexaMusic/main/screenshots/HomeUI.png" width="30%" alt="NexaMusic Home screen">
+  <img src="https://raw.githubusercontent.com/tanmayy91/NexaMusic/main/screenshots/AlbumUI.png" width="30%" alt="NexaMusic Album screen">
+  <img src="https://raw.githubusercontent.com/tanmayy91/NexaMusic/main/screenshots/PlayingUI.png" width="30%" alt="NexaMusic Now Playing screen">
 </div>
 
 ## Download NexaMusic
 
-**[View all NexaMusic releases and download the latest APK](https://github.com/nkosanamahungela-dev/NexaMusic/releases)**
+**[View all NexaMusic releases and download the latest APK](https://github.com/tanmayy91/NexaMusic/releases)**
 
 Open the Releases page, choose the newest version, and download the APK from its **Assets** section.
 

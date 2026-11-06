@@ -1305,16 +1305,6 @@
     <string name="force_selected_quality_desc">On: always use the quality selected above, even if a lossless module or Tidal would otherwise upgrade it to FLAC.</string>
     <string name="login_validation_failed_retrying">Couldn\'t confirm sign-in, retrying…</string>
     <string name="login_validation_failed_final">Sign-in failed. Go back and try again.</string>
-    <string name="support_section">Support</string>
-    <string name="support_upi">UPI</string>
-    <string name="support_kofi">Ko-fi</string>
-    <string name="support_kofi_desc">Buy the developer a coffee</string>
-    <string name="donation_prompt_title">Enjoying NexaMusic?</string>
-    <string name="donation_prompt_message">If NexaMusic has been useful to you, consider chipping in a little to help keep it going. Totally optional, never required.</string>
-    <string name="donation_prompt_upi">Support via UPI</string>
-    <string name="donation_prompt_kofi">Support via Ko-fi</string>
-    <string name="donation_prompt_later">Maybe later</string>
-    <string name="donation_prompt_dont_ask">Don\'t ask again</string>
     <string name="dj_readout_analyzing">Auto-DJ · analysing…</string>
     <string name="hide_volume_bar">Hide Volume Bar</string>
     <string name="hide_volume_bar_desc">Hide the volume slider in the player\'s menu</string>

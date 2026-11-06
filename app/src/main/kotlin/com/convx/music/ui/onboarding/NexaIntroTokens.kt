@@ -32,9 +32,9 @@ object NexaIntroTokens {
     const val BODY_SIZE_SP = 17
 
     // Fill these with the project's official URLs before release.
-    const val GITHUB_REPO_URL = "https://github.com/nkosanamahungela-dev/NexaMusic"
+    const val GITHUB_REPO_URL = "https://github.com/tanmayy91/NexaMusic"
     const val DISCORD_INVITE_URL = "https://discord.gg/D8fYQKUEzw"
-    const val LICENSE_URL = "https://github.com/nkosanamahungela-dev/NexaMusic/blob/main/LICENSE"
+    const val LICENSE_URL = "https://github.com/tanmayy91/NexaMusic/blob/main/LICENSE"
 
     const val SCREEN_SLIDE_DP = 48
     const val STAGGER_MS = 100L

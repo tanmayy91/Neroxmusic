@@ -98,7 +98,7 @@ fun CrashLogsSettingsScreen(navController: NavController) {
                         icon = painterResource(R.drawable.bug_report),
                         title = { Text("Report on GitHub") },
                         description = { Text("Open NexaMusic issues") },
-                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nkosanamahungela-dev/NexaMusic/issues/new"))) },
+                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/tanmayy91/NexaMusic/issues/new"))) },
                     ),
                 ),
             )

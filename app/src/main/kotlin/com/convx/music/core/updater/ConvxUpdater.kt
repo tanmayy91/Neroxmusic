@@ -337,7 +337,7 @@ fun UpdateScreen(navController: NavHostController) {
                                                 ContextCompat.startActivity(context, installIntent, null)
                                             }
                                         } else {
-                                            val urlToDownload = currentStatus.apkUrl ?: "https://github.com/nkosanamahungela-dev/NexaMusic/releases/download/${currentStatus.version}/nexamusic-${currentStatus.version}.apk"
+                                            val urlToDownload = currentStatus.apkUrl ?: "https://github.com/tanmayy91/NexaMusic/releases/download/${currentStatus.version}/nexamusic-${currentStatus.version}.apk"
                                             val downloadRequest = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
                                                 .setInputData(workDataOf("apk_url" to urlToDownload, "version" to currentStatus.version, "file_size" to currentStatus.size))
                                                 .addTag("update_download")
@@ -733,7 +733,7 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
 // Returns the nightly artifact size for display, or empty when unavailable.
 private fun fetchNightlyArtifactSize(runId: Long): String = try {
     val artifactsUrl =
-        URL("https://api.github.com/repos/nkosanamahungela-dev/NexaMusic/actions/runs/$runId/artifacts")
+        URL("https://api.github.com/repos/tanmayy91/NexaMusic/actions/runs/$runId/artifacts")
     val artifacts = JSONObject(artifactsUrl.openStream().bufferedReader().use { it.readText() })
         .optJSONArray("artifacts")
     val bytes = artifacts?.let { artifactArray ->
@@ -756,7 +756,7 @@ suspend fun checkForUpdate(
 ) {
     withContext(Dispatchers.IO) {
         try {
-            val url = URL("https://api.github.com/repos/nkosanamahungela-dev/NexaMusic/releases")
+            val url = URL("https://api.github.com/repos/tanmayy91/NexaMusic/releases")
             val json = url.openStream().bufferedReader().use { it.readText() }
             val releases = JSONArray(json)
             
@@ -768,7 +768,7 @@ suspend fun checkForUpdate(
 
             if (betaEnabled) {
                 try {
-                    val nightlyUrl = URL("https://api.github.com/repos/nkosanamahungela-dev/NexaMusic/actions/workflows/nightly.yml/runs?status=success&per_page=1")
+                    val nightlyUrl = URL("https://api.github.com/repos/tanmayy91/NexaMusic/actions/workflows/nightly.yml/runs?status=success&per_page=1")
                     val nightlyJson = nightlyUrl.openStream().bufferedReader().use { it.readText() }
                     val nightlyData = JSONObject(nightlyJson)
                     val runs = nightlyData.optJSONArray("workflow_runs")
@@ -800,7 +800,7 @@ suspend fun checkForUpdate(
                 changelogList.add(ChangelogSection(context.getString(R.string.changelog), listOf(subjectLine)))
                 
                 val formattedReleaseDate = formatGitHubDate(runUpdatedAt)
-                val apkDownloadUrl = "https://nightly.link/nkosanamahungela-dev/NexaMusic/workflows/nightly.yml/main/nexamusic-gms-beta.zip"
+                val apkDownloadUrl = "https://nightly.link/tanmayy91/NexaMusic/workflows/nightly.yml/main/nexamusic-gms-beta.zip"
                 val apkSize = fetchNightlyArtifactSize(nightlyRunObject.getLong("id"))
 
                 withContext(Dispatchers.Main) {
@@ -848,7 +848,7 @@ suspend fun checkForUpdate(
                     var imageUrl: String? = null
                     try {
                         val changelogUrl =
-                            URL("https://github.com/nkosanamahungela-dev/NexaMusic/releases/download/$tagWithPrefix/changelog.json")
+                            URL("https://github.com/tanmayy91/NexaMusic/releases/download/$tagWithPrefix/changelog.json")
                         val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
                         val changelogData = JSONObject(changelogJson)
 
