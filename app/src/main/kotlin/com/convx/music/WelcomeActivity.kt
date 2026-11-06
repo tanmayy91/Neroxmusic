@@ -506,7 +506,7 @@ private fun WelcomeIntroPage() {
         )
         Text(
             text = buildAnnotatedString {
-                withStyle(SpanStyle(color = NexaIntroColors.nexaMint)) { append("Nexa") }
+                withStyle(SpanStyle(color = NexaIntroColors.nexaMint)) { append("Nerox") }
                 withStyle(SpanStyle(color = NexaIntroColors.text)) { append("Music") }
             },
             fontFamily = GoogleSansFlex,
@@ -736,7 +736,7 @@ private fun CommunityIntroPage(
         IntroHeading(
             firstLine = "Join our",
             accentLine = "Community",
-            subtitle = "NexaMusic is an open-source music app built with community support. Your help makes a difference!",
+            subtitle = "Nerox Music is an open-source music app built with community support. Your help makes a difference!",
         )
         Spacer(Modifier.height(22.dp))
         Row(

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Shared brand-mint background for all NexaMusic launcher-icon variants. -->
+    <!-- Shared brand-mint background for all Nerox Music launcher-icon variants. -->
     <color name="ic_launcher_tile">#C9E4C8</color>
 </resources>

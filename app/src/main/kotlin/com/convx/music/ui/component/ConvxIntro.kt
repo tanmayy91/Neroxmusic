@@ -1,6 +1,6 @@
 /**
- * NexaMusic cold-start intro.
- * Uses the existing NexaMusic vector mark; no replacement artwork is generated.
+ * Nerox Music cold-start intro.
+ * Uses the existing Nerox Music vector mark; no replacement artwork is generated.
  */
 package com.convx.music.ui.component
 
@@ -174,7 +174,7 @@ fun ConvxIntro(onFinished: () -> Unit) {
             }
 
             // Wordmark letters rise into their own clipped reveal windows.
-            val letters = "NexaMusic"
+            val letters = "Nerox Music"
             val letterGap = (-2).dp.toPx()
             wordPaint.textSize = wordSize
             val widths = letters.map { wordPaint.measureText(it.toString()) }

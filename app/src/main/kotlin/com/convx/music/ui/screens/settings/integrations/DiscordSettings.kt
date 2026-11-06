@@ -1,5 +1,5 @@
 /**
- * NexaMusic Project (C) 2026
+ * Nerox Music Project (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -655,7 +655,7 @@ fun DiscordSettings(
                         IosSettingsItem(
                             title = { Text(stringResource(R.string.discord_button_2)) },
                             description = {
-                                Text(button2Text.ifEmpty { "Visit NexaMusic" })
+                                Text(button2Text.ifEmpty { "Visit Nerox Music" })
                             },
                             trailingContent = {
                                 Switch(
@@ -876,10 +876,10 @@ fun RichPresence(
             if (button2Visible) {
                 val resolvedButton2 = if (song != null) {
                     DiscordRPC.resolveVariables(
-                        button2Text.ifEmpty { "Visit NexaMusic" }, song
+                        button2Text.ifEmpty { "Visit Nerox Music" }, song
                     )
                 } else {
-                    button2Text.ifEmpty { "Visit NexaMusic" }
+                    button2Text.ifEmpty { "Visit Nerox Music" }
                 }
                 OutlinedButton(
                     onClick = {

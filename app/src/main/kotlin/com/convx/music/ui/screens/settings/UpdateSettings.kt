@@ -59,7 +59,7 @@ import com.convx.music.ui.ios.compat.AppTheme
 import com.convx.music.BuildConfig
 
 /**
- * NexaMusic Project (C) 2026
+ * Nerox Music Project (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -111,7 +111,7 @@ fun UpdateSettings(
                                 color = AppTheme.colorScheme.error
                             )
                         } else {
-                            Text("NexaMusic is up to date")
+                            Text("Nerox Music is up to date")
                         }
                     },
                     onClick = {

@@ -222,7 +222,7 @@ private fun WelcomeScreen(reduceMotion: Boolean, play: Boolean) {
         Spacer(Modifier.height(24.dp))
         Text("Welcome to", color = NexaIntroTokens.WelcomeMuted, fontSize = 18.sp)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Nexa", color = NexaIntroTokens.Mint, fontSize = 52.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-2).sp)
+            Text("Nerox", color = NexaIntroTokens.Mint, fontSize = 52.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-2).sp)
             Text("Music", color = Color.White, fontSize = 52.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-2).sp)
         }
         Text("Music that moves with you.", color = Color.White, fontSize = 17.sp, textAlign = TextAlign.Center)
@@ -456,7 +456,7 @@ private fun CommunityScreen(reduceMotion: Boolean, play: Boolean, onGitHub: () -
 private fun NexaLogo(modifier: Modifier = Modifier) {
     Image(
         painter = painterResource(R.drawable.convx_logo),
-        contentDescription = "NexaMusic logo",
+        contentDescription = "Nerox Music logo",
         modifier = modifier,
     )
 }
