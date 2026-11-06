@@ -94,7 +94,7 @@ fun PlaybackLogsDialog(
             ) {
                 Text(stringResource(R.string.crash_share_logs))
             }
-            TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nkosanamahungela-dev/NexaMusic/issues/new"))) }) {
+            TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/tanmayy91/NexaMusic/issues/new"))) }) {
                 Text("Report issue")
             }
             Spacer(modifier = Modifier.width(8.dp))

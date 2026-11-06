@@ -58,7 +58,7 @@
     <string name="collaborator_section">COLLABORATOR</string>
     <string name="app_info_section">APP INFO</string>
     <string name="community_section">COMMUNITY</string>
-    <string name="developer_name">Aryan (CosmicTaser)</string>
+    <string name="developer_name">Tanmay</string>
     <string name="app_developer">Lead Developer</string>
     <string name="website">Website</string>
     <string name="collaborator_tboyke">T-Boyke</string>
@@ -72,8 +72,6 @@
     <string name="see_community_heroes">See our community heroes</string>
     <string name="report_issue_title_about">Report Issue</string>
     <string name="bugs_feedback">Bugs &amp; feedback</string>
-    <string name="donate">Donate</string>
-    <string name="support_development">Support development</string>
     <string name="beta_updates">Beta Updates</string>
     <string name="beta_updates_subtitle">Include beta and pre-release versions alongside stable releases. Turn off to receive stable releases only.</string>
     <string name="on_latest_version">No update available</string>

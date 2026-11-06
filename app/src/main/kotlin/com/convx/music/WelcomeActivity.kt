@@ -334,9 +334,9 @@ private object NexaIntroColors {
 
 /** Keep all web destinations in one place, so each link is easy to update. */
 private object NexaIntroLinks {
-    const val GITHUB_REPO_URL = "https://github.com/nkosanamahungela-dev/NexaMusic"
+    const val GITHUB_REPO_URL = "https://github.com/tanmayy91/NexaMusic"
     const val DISCORD_INVITE_URL = "https://discord.gg/D8fYQKUEzw"
-    const val LICENSE_URL = "https://github.com/nkosanamahungela-dev/NexaMusic/blob/main/LICENSE"
+    const val LICENSE_URL = "https://github.com/tanmayy91/NexaMusic/blob/main/LICENSE"
 }
 
 /** Uses the existing logo resource, unchanged. Connect a different existing asset only here if needed. */

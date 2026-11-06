@@ -1305,16 +1305,6 @@
     <string name="force_selected_quality_desc">Activé : utilise toujours la qualité sélectionnée ci-dessus, même si un module sans perte ou Tidal l\'améliorerait normalement en FLAC.</string>
     <string name="login_validation_failed_retrying">Impossible de confirmer la connexion, nouvelle tentative…</string>
     <string name="login_validation_failed_final">Échec de la connexion. Revenez en arrière et réessayez.</string>
-    <string name="support_section">Assistance</string>
-    <string name="support_upi">UPI</string>
-    <string name="support_kofi">Ko-fi</string>
-    <string name="support_kofi_desc">Offrir un café au développeur</string>
-    <string name="donation_prompt_title">Vous appréciez NexaMusic ?</string>
-    <string name="donation_prompt_message">Si NexaMusic vous est utile, pensez à faire un petit don pour soutenir le projet. C\'est totalement facultatif et jamais obligatoire.</string>
-    <string name="donation_prompt_upi">Soutenir via UPI</string>
-    <string name="donation_prompt_kofi">Soutenir via Ko-fi</string>
-    <string name="donation_prompt_later">Plus tard</string>
-    <string name="donation_prompt_dont_ask">Ne plus demander</string>
     <string name="dj_readout_analyzing">Auto-DJ · analyse en cours…</string>
     <string name="hide_volume_bar">Masquer la barre de volume</string>
     <string name="hide_volume_bar_desc">Masquer le curseur de volume dans le menu du lecteur</string>

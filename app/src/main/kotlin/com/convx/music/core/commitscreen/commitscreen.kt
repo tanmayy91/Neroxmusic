@@ -108,7 +108,7 @@ fun CommitScreen(
         hasError = false
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val url = URL("https://api.github.com/repos/nkosanamahungela-dev/NexaMusic/commits?branch=main&per_page=50")
+                val url = URL("https://api.github.com/repos/tanmayy91/NexaMusic/commits?branch=main&per_page=50")
                 val json = url.openStream().bufferedReader().use { it.readText() }
                 val array = JSONArray(json)
                 val outputFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())

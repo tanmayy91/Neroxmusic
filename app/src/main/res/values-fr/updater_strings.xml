@@ -58,7 +58,7 @@
     <string name="collaborator_section">COLLABORATEUR</string>
     <string name="app_info_section">INFORMATIONS DE L\'APPLICATION</string>
     <string name="community_section">COMMUNAUTÉ</string>
-    <string name="developer_name">Aryan (CosmicTaser)</string>
+    <string name="developer_name">Tanmay</string>
     <string name="app_developer">Développeur principal</string>
     <string name="website">Site web</string>
     <string name="collaborator_tboyke">T-Boyke</string>
@@ -72,8 +72,6 @@
     <string name="see_community_heroes">Voir les héros de la communauté</string>
     <string name="report_issue_title_about">Signaler un problème</string>
     <string name="bugs_feedback">Bugs &amp; retours</string>
-    <string name="donate">Faire un don</string>
-    <string name="support_development">Soutenir le développement</string>
     <string name="beta_updates">Mises à jour Bêta</string>
     <string name="beta_updates_subtitle">Activez ceci si vous souhaitez recevoir les mises à jour bêta (ex. b5.0.1)</string>
     <string name="on_latest_version">Vous utilisez la dernière version</string>
