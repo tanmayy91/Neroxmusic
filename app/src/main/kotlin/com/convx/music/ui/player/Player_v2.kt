@@ -99,6 +99,7 @@ import com.convx.music.utils.rememberEnumPreference
 import com.convx.music.extensions.togglePlayPause
 import com.convx.music.extensions.metadata
 import com.convx.music.ui.component.Lyrics
+import com.convx.music.ui.component.CinematicLyrics
 import com.convx.music.ui.component.rememberBottomSheetState
 import com.convx.music.ui.component.expandedAnchor
 import androidx.compose.animation.core.Animatable
@@ -1434,10 +1435,8 @@ private fun PlayerV2Content(
                                 ) {
                                     if (targetState == PlayerInternalState.LYRICS) {
                                         Box(Modifier.fillMaxSize()) {
-                                            Lyrics(
+                                            CinematicLyrics(
                                                 sliderPositionProvider = { sliderPosition ?: position },
-                                                showLyrics = true,
-                                                introKey = lyricsIntroKey,
                                                 modifier = Modifier.fillMaxSize()
                                             )
                                             // Shares the lyrics menu setting; shown only when an AI provider is configured.
@@ -1550,10 +1549,8 @@ private fun PlayerV2Content(
             if (lyricsShown) {
                 Box(Modifier.fillMaxSize()) {
                     com.convx.music.ui.utils.ProvideUnscaledDensity {
-                        Lyrics(
+                        CinematicLyrics(
                             sliderPositionProvider = { sliderPosition ?: position },
-                            showLyrics = true,
-                            introKey = lyricsIntroKey,
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
