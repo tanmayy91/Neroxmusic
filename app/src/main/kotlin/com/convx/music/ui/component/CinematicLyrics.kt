@@ -46,6 +46,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -73,6 +74,7 @@ fun CinematicLyrics(
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val metadata by playerConnection.mediaMetadata.collectAsState(initial = null)
+    val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
     val lyrics = remember(lyricsEntity?.lyrics) {
         lyricsEntity?.lyrics?.trim()?.takeUnless { it.isNullOrEmpty() || it == LYRICS_NOT_FOUND }
@@ -95,7 +97,7 @@ fun CinematicLyrics(
     val currentIndex = remember(lines, position, lyrics) {
         if (lines.isEmpty()) -1
         else if (lyrics?.startsWith("[") == true) {
-            primaryLyricLineIndex(lines, position + (playerConnection.currentSong.value?.song?.lyricsOffset ?: 0))
+            primaryLyricLineIndex(lines, position + (currentSong?.song?.lyricsOffset ?: 0))
                 .coerceIn(0, lines.lastIndex)
         } else {
             lines.indexOfLast { it.time <= position }.coerceIn(0, lines.lastIndex)
@@ -272,7 +274,7 @@ private fun CinematicLyricCard(
                     val line = lines.getOrNull(index + offset) ?: return@forEach
                     val active = offset == 0
                     Text(
-                        text = if (active) highlightedLyric(line, position) else line.text,
+                        text = if (active) highlightedLyric(line, position) else AnnotatedString(line.text),
                         color = if (active) Color.White else Color(0xFFFF9EAD).copy(alpha = if (offset > 0) 0.7f else 0.48f),
                         fontSize = if (active) 20.sp else 17.sp,
                         fontWeight = if (active) FontWeight.ExtraBold else FontWeight.Medium,
