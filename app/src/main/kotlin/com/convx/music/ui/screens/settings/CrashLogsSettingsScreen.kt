@@ -1,5 +1,5 @@
 /**
- * NexaMusic Project (C) 2026
+ * Nerox Music Project (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -56,7 +56,7 @@ fun CrashLogsSettingsScreen(navController: NavController) {
         horizontalPadding = 16.dp,
     ) {
         Text(
-            text = "If NexaMusic closes unexpectedly, its latest crash report appears here. You can copy it or report the problem to the NexaMusic issue tracker.",
+            text = "If Nerox Music closes unexpectedly, its latest crash report appears here. You can copy it or report the problem to the Nerox Music issue tracker.",
             style = IosTheme.typography.body,
             color = IosTheme.colors.secondaryLabel,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
@@ -97,7 +97,7 @@ fun CrashLogsSettingsScreen(navController: NavController) {
                     IosSettingsItem(
                         icon = painterResource(R.drawable.bug_report),
                         title = { Text("Report on GitHub") },
-                        description = { Text("Open NexaMusic issues") },
+                        description = { Text("Open Nerox Music issues") },
                         onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/tanmayy91/NexaMusic/issues/new"))) },
                     ),
                 ),
@@ -123,13 +123,13 @@ fun CrashLogsSettingsScreen(navController: NavController) {
 
 private fun copyReport(context: Context, report: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText("NexaMusic crash report", report))
+    clipboard.setPrimaryClip(ClipData.newPlainText("Nerox Music crash report", report))
 }
 
 private fun shareReport(context: Context, report: String) {
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
-        putExtra(Intent.EXTRA_SUBJECT, "NexaMusic crash report")
+        putExtra(Intent.EXTRA_SUBJECT, "Nerox Music crash report")
         putExtra(Intent.EXTRA_TEXT, report)
     }
     context.startActivity(Intent.createChooser(send, "Share crash report"))

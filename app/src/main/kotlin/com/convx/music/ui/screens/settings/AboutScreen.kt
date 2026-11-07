@@ -1,5 +1,5 @@
 /**
- * NexaMusic Project (C) 2026
+ * Nerox Music Project (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -110,7 +110,7 @@ fun AboutScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "NexaMusic",
+                text = "Nerox Music",
                 style = AppTheme.typography.displaySmall.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 48.sp,
@@ -153,7 +153,7 @@ fun AboutScreen(
                 IosSettingsItem(
                     icon = rememberVectorPainter(SfSymbols.Monochrome.SFPersonCropCircleBadgeExclamationmark),
                     title = { Text("Smelokuhle (Mahungela)") },
-                    description = { Text("NexaMusic developer", color = AppTheme.colorScheme.primary) },
+                    description = { Text("Nerox Music developer", color = AppTheme.colorScheme.primary) },
                     tintIcon = false,
                     iconShape = cookieShape,
                     onClick = { uriHandler.safeOpenUri(context, "https://github.com/tanmayy91") }

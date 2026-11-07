@@ -59,7 +59,7 @@
     <string name="excluded_folders">Dossiers exclus</string>
     <string name="excluded_folders_desc">Choisir quels dossiers de l\'appareil sont analysés par le mode local uniquement</string>
     <string name="excluded_folders_empty">Aucun dossier contenant de la musique n\'a encore été trouvé. Appuyez sur Analyser l\'appareil pour chercher à nouveau.</string>
-    <string name="excluded_folders_permission">NexaMusic a besoin de l\'autorisation de lire les fichiers audio sur cet appareil avant de pouvoir lister vos dossiers.</string>
+    <string name="excluded_folders_permission">Nerox Music a besoin de l\'autorisation de lire les fichiers audio sur cet appareil avant de pouvoir lister vos dossiers.</string>
     <string name="excluded_folders_custom">Exclus manuellement</string>
     <string name="exclude_folder_add">Ajouter un dossier</string>
     <string name="v2_menu_add">Ajouter</string>
@@ -75,7 +75,7 @@
     <string name="v2_route_more">Options audio…</string>
     <string name="v2_menu_more">Plus…</string>
     <string name="save_downloads_to_music">Enregistrer les téléchargements dans le dossier Musique</string>
-    <string name="save_downloads_to_music_desc">Conserver également chaque téléchargement sous forme de fichier M4A dans Musique/NexaMusic, lisible dans n\'importe quelle application</string>
+    <string name="save_downloads_to_music_desc">Conserver également chaque téléchargement sous forme de fichier M4A dans Musique/Nerox Music, lisible dans n\'importe quelle application</string>
     <string name="audio_quality_settings">Paramètres de qualité audio</string>
     <string name="queue_playing_next">À suivre</string>
     <string name="queue_playing_from">Depuis %1$s</string>
@@ -157,11 +157,11 @@
     <string name="convx_canvas_desc">Remplace la pochette statique dans le lecteur par une vidéo animée en boucle lorsqu\'elle est disponible pour le titre en cours</string>
     <string name="canvas_source">Source du Canvas</string>
     <string name="canvas_source_auto">Auto</string>
-    <string name="canvas_source_auto_desc">Essaie d\'abord Apple Music, puis bascule sur NexaMusic et Tidal. Choisit automatiquement la meilleure correspondance pour la chanson</string>
+    <string name="canvas_source_auto_desc">Essaie d\'abord Apple Music, puis bascule sur Nerox Music et Tidal. Choisit automatiquement la meilleure correspondance pour la chanson</string>
     <string name="canvas_source_apple_music">Apple Music</string>
     <string name="canvas_source_apple_music_desc">Utilise exclusivement les visuels animés d\'Apple Music. N\'affiche un Canvas que si Apple Music en possède un pour le titre</string>
-    <string name="canvas_source_convx">NexaMusic</string>
-    <string name="canvas_source_convx_desc">Utilise exclusivement la bibliothèque Canvas sélectionnée par NexaMusic. N\'affiche un Canvas que s\'il a été ajouté pour le titre</string>
+    <string name="canvas_source_convx">Nerox Music</string>
+    <string name="canvas_source_convx_desc">Utilise exclusivement la bibliothèque Canvas sélectionnée par Nerox Music. N\'affiche un Canvas que s\'il a été ajouté pour le titre</string>
     <string name="canvas_source_tidal">Tidal</string>
     <string name="canvas_source_tidal_desc">Utilise exclusivement les visuels animés de Tidal. N\'affiche un Canvas que si Tidal en possède un pour le titre</string>
     <string name="canvas_source_spotify">Spotify</string>
@@ -490,7 +490,7 @@
     <string name="enable_scrobbling">Activer le scrobbling</string>
     <string name="lastfm_now_playing">Envoyer « En cours de lecture »</string>
     <string name="last_fm_send_likes">Envoyer les mentions J\'aime / Je n\'aime pas</string>
-    <string name="last_fm_send_likes_description">Aimer / Ne plus aimer les chansons sur Last.fm lorsqu\'elles le sont dans NexaMusic</string>
+    <string name="last_fm_send_likes_description">Aimer / Ne plus aimer les chansons sur Last.fm lorsqu\'elles le sont dans Nerox Music</string>
     <string name="logging_in">Connexion en cours…</string>
 
     <string name="scrobbling_configuration">Configuration du scrobbling</string>
@@ -559,7 +559,7 @@
     <string name="apple_music_style">Apple Music</string>
     <string name="apple_music_style_letter">Apple Music V2 (Lettre par lettre)</string>
     <string name="lyrics_animation_bitchord">Synchro d\'accords</string>
-    <string name="convx_1">NexaMusic (Fluide)</string>
+    <string name="convx_1">Nerox Music (Fluide)</string>
     <string name="apple_music_lyrics_blur">Flou des paroles Apple Music</string>
     <string name="apple_music_lyrics_blur_desc">Appliquer un flou sur les lignes de paroles inactives pour un effet de mise au point de qualité</string>
     <string name="lyrics_v2_fluid">Paroles V2 (Fluide)</string>
@@ -589,19 +589,19 @@
     <string name="wrapped_total_artists_subtitle">artistes uniques</string>
     <string name="wrapped_total_songs_title">Vous avez écouté</string>
     <string name="wrapped_total_songs_subtitle">chansons uniques</string>
-    <string name="wrapped_intro_title">NexaMusic</string>
+    <string name="wrapped_intro_title">Nerox Music</string>
     <string name="wrapped_intro_subtitle">il est temps de découvrir ce que vous avez écouté</string>
     <string name="wrapped_intro_button">C\'est parti !</string>
-    <string name="wrapped_end_thanks">Merci d\'avoir écouté la musique avec NexaMusic !</string>
+    <string name="wrapped_end_thanks">Merci d\'avoir écouté la musique avec Nerox Music !</string>
     <string name="wrapped_end_create_playlist">Créer votre playlist Rétrospective</string>
     <string name="wrapped_end_creating_playlist">Création en cours…</string>
     <string name="wrapped_end_playlist_saved">Playlist enregistrée</string>
-    <string name="wrapped_logo_content_description">Logo NexaMusic</string>
+    <string name="wrapped_logo_content_description">Logo Nerox Music</string>
     <string name="wrapped_year">2025</string>
 	<string name="wrapped_ready_title">VOTRE RÉTROSPECTIVE EST PRÊTE !</string>
     <string name="wrapped_ready_subtitle">Il est temps de découvrir ce que vous avez aimé cette année.</string>
     <string name="wrapped_thank_you">Merci de votre écoute</string>
-    <string name="wrapped_special_thanks">Remerciements particuliers à la communauté open-source sur laquelle NexaMusic est bâti</string>
+    <string name="wrapped_special_thanks">Remerciements particuliers à la communauté open-source sur laquelle Nerox Music est bâti</string>
     <string name="wrapped_close">Fermer la rétrospective</string>
     <string name="wrapped_playlist_title">Votre Rétrospective %s</string>
     <string name="wrapped_create_playlist">Créer une playlist</string>
@@ -631,8 +631,8 @@
     <string name="error_title">Erreur</string>
     <string name="error_eq_apply_failed">Échec de l\'application du profil d\'égaliseur : %1$s</string>
 
-    <!-- NexaMusic Equalizer Strings -->
-    <string name="convx_equalizer">Égaliseur NexaMusic</string>
+    <!-- Nerox Music Equalizer Strings -->
+    <string name="convx_equalizer">Égaliseur Nerox Music</string>
     <string name="convx_equalizer_desc">Réglages acoustiques et effets professionnels</string>
     <string name="eq_simple">Simple</string>
     <string name="eq_advanced">Avancé</string>
@@ -640,7 +640,7 @@
     <string name="eq_label_mid">Médiums</string>
     <string name="eq_label_treble">Aigus</string>
     <string name="eq_preset_flat">Plat</string>
-    <string name="eq_preset_convx_signature">Signature NexaMusic</string>
+    <string name="eq_preset_convx_signature">Signature Nerox Music</string>
     <string name="eq_preset_acoustic">Acoustique</string>
     <string name="eq_preset_spatial">Scène 3D</string>
     <string name="eq_preset_bass_boost">Amplification des basses</string>
@@ -657,9 +657,9 @@
     <string name="eq_preset_dirac_music">Dirac Musique</string>
     <string name="eq_preset_dirac_movie">Dirac Film</string>
     <string name="eq_preset_dirac_game">Dirac Jeu</string>
-    <string name="eq_enable_title">Égaliseur NexaMusic</string>
+    <string name="eq_enable_title">Égaliseur Nerox Music</string>
     <string name="eq_enable_summary">Activer/désactiver le traitement audio professionnel</string>
-    <string name="eq_label_convx">Signature NexaMusic</string>
+    <string name="eq_label_convx">Signature Nerox Music</string>
     <string name="eq_label_dolby">Dolby Atmos</string>
     <string name="eq_label_dirac">Audio Dirac</string>
     <string name="eq_reset">Réinitialiser</string>
@@ -677,9 +677,9 @@
     <string name="plays">écoutes</string>
     <string name="casting_to">Diffusion sur %s</string>
     <string name="progress_percent">Progression %s%%</string>
-    <string name="listening_to_convx">Écoute sur NexaMusic</string>
+    <string name="listening_to_convx">Écoute sur Nerox Music</string>
     <string name="listen_on_youtube_music">Écouter sur YouTube Music</string>
-    <string name="visit_convx">Visiter NexaMusic</string>
+    <string name="visit_convx">Visiter Nerox Music</string>
     <string name="open">Ouvrir</string>
     <string name="failed_to_create_image">Échec de la création de l\'image : %s</string>
     <string name="copied_title">Titre copié</string>
@@ -696,13 +696,13 @@
     <!-- Widget strings -->
     <string name="album_art">Pochette d\'album</string>
     <string name="no_song_playing">Aucune chanson en cours de lecture</string>
-    <string name="tap_to_open">Appuyez pour ouvrir NexaMusic</string>
+    <string name="tap_to_open">Appuyez pour ouvrir Nerox Music</string>
     <string name="previous">Précédent</string>
     <string name="play_pause">Lecture/Pause</string>
     <string name="next">Suivant</string>
     <string name="like">J\'aime</string>
     <string name="not_playing">Aucune chanson en cours de lecture</string>
-    <string name="tap_to_play">Appuyez pour ouvrir NexaMusic</string>
+    <string name="tap_to_play">Appuyez pour ouvrir Nerox Music</string>
     <string name="widget_description">Widget de lecteur de musique avec commandes de lecture</string>
     <string name="queue_widget_description">Lecteur de musique avec aperçu de la file d\'attente</string>
     <string name="turntable_widget_description">Widget de musique circulaire avec commandes de lecture et de favoris</string>
@@ -934,7 +934,7 @@
     <string name="crash_share_logs">Partager les journaux</string>
     <string name="copy_logs">Copier les journaux</string>
     <string name="crash_share_title">Partager le rapport de plantage</string>
-    <string name="crash_report_subject">Rapport de plantage NexaMusic</string>
+    <string name="crash_report_subject">Rapport de plantage Nerox Music</string>
     <string name="crash_close">Fermer</string>
     <string name="crash_no_log">Aucun journal de plantage disponible</string>
 
@@ -988,7 +988,7 @@
     <string name="delete_from_history">Supprimer de l\'historique</string>
     <string name="re_listen">Réécouter</string>
     <string name="hold_to_recognize">Maintenir l\'icône de recherche pour reconnaître la musique</string>
-    <string name="play_on_app">Écouter sur NexaMusic</string>
+    <string name="play_on_app">Écouter sur Nerox Music</string>
     <string name="recognized_track">Titre reconnu</string>
 
 	<!-- CSV Import Strings -->
@@ -1027,9 +1027,9 @@
     <string name="discord_rpc_preview">Aperçu du Rich Presence</string>
     <string name="discord_presence">Présence</string>
     <string name="discord_connect_description">Connectez-vous à Discord pour partager ce que vous écoutez</string>
-    <string name="discord_playing_convx">Joue à NexaMusic</string>
-    <string name="discord_watching_convx">Regarde NexaMusic</string>
-    <string name="discord_competing_convx">Participe à NexaMusic</string>
+    <string name="discord_playing_convx">Joue à Nerox Music</string>
+    <string name="discord_watching_convx">Regarde Nerox Music</string>
+    <string name="discord_competing_convx">Participe à Nerox Music</string>
     <string name="discord_activity_name">Nom de l\'activité</string>
     <string name="discord_activity_name_description">Nom personnalisé pour l\'activité (laisser vide par défaut)</string>
     <string name="discord_advanced_mode">Mode avancé</string>
@@ -1089,7 +1089,7 @@
 
     <string name="perm_required">Requis</string>
     <string name="perm_permissions">Autorisations</string>
-    <string name="perm_intro_text">Ces autorisations sont nécessaires au bon fonctionnement de NexaMusic. Veuillez les accorder pour continuer.</string>
+    <string name="perm_intro_text">Ces autorisations sont nécessaires au bon fonctionnement de Nerox Music. Veuillez les accorder pour continuer.</string>
 
     <string name="perm_notif_title">Notifications</string>
     <string name="perm_notif_desc">Sachez immédiatement quand votre musique est en cours de lecture et contrôlez-la depuis la barre de notification.</string>
@@ -1099,7 +1099,7 @@
 
     <string name="feat_discover">Découvrir</string>
     <string name="feat_features">Fonctionnalités</string>
-    <string name="feat_intro">Explorez tout ce que NexaMusic a à offrir pour votre expérience musicale.</string>
+    <string name="feat_intro">Explorez tout ce que Nerox Music a à offrir pour votre expérience musicale.</string>
 
     <string name="feat_lyrics_title">Paroles intelligentes</string>
     <string name="feat_lyrics_desc">Profitez de paroles synchronisées mot à mot pour des millions de chansons.</string>
@@ -1129,7 +1129,7 @@
     <string name="welcome_update_status">À jour</string>
     <string name="welcome_update_intro">Assure que vous disposez des dernières fonctionnalités et améliorations de sécurité.</string>
     <string name="welcome_checking_updates">Recherche de mises à jour…</string>
-    <string name="welcome_up_to_date">NexaMusic est à jour !</string>
+    <string name="welcome_up_to_date">Nerox Music est à jour !</string>
     <string name="welcome_update_available">Une nouvelle version est disponible : %s</string>
     <string name="welcome_everything_ready">Tout est maintenant à jour</string>
     <string name="commits_title">Commits</string>
@@ -1399,7 +1399,7 @@
     <string name="network_storage_scanned">%1$d chansons ajoutées, %2$d déjà présentes dans la bibliothèque.</string>
     <string name="network_storage_truncated"> L\'analyse s\'est arrêtée à la limite autorisée.</string>
     <string name="network_storage_remove_title">Supprimer %1$s ?</string>
-    <string name="network_storage_remove_text">Le serveur sera retiré de NexaMusic. Les chansons déjà ajoutées resteront dans la bibliothèque.</string>
+    <string name="network_storage_remove_text">Le serveur sera retiré de Nerox Music. Les chansons déjà ajoutées resteront dans la bibliothèque.</string>
     <string name="network_storage_err_auth">Nom d\'utilisateur ou mot de passe incorrect.</string>
     <string name="network_storage_err_not_found">Dossier ou partage introuvable.</string>
     <string name="network_storage_err_connection">Impossible d\'atteindre le serveur.</string>
@@ -1415,7 +1415,7 @@
     <string name="jam_reconnecting">Reconnexion en cours…</string>
     <string name="jam_copy">Copier</string>
     <string name="jam_share">Partager</string>
-    <string name="jam_share_text">Rejoignez ma session NexaMusic : %2$s (code %1$s)</string>
+    <string name="jam_share_text">Rejoignez ma session Nerox Music : %2$s (code %1$s)</string>
     <string name="jam_now_playing">En cours de lecture</string>
     <string name="jam_members">Membres (%1$d sur %2$d)</string>
     <string name="jam_you">(vous)</string>

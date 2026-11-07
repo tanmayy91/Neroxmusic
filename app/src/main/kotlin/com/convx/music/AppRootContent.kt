@@ -1326,7 +1326,7 @@ internal fun AppRootContent(
                             Column {
                                 androidx.compose.material3.Text(
                                     "YouTube Music may require you to sign in before streaming. " +
-                                        "Some Piped instances may also be unavailable. Sign in to NexaMusic " +
+                                        "Some Piped instances may also be unavailable. Sign in to Nerox Music " +
                                         "for a more reliable listening experience."
                                 )
                                 androidx.compose.foundation.layout.Row(

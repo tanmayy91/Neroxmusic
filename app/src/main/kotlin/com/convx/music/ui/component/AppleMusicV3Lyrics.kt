@@ -1,5 +1,5 @@
 /**
- * Native Apple Music-inspired lyrics renderer for NexaMusic.
+ * Native Apple Music-inspired lyrics renderer for Nerox Music.
  *
  * This renderer is deliberately isolated behind LyricsAnimationStyle.APPLE_V3.
  * It uses Compose only; no WebView or browser runtime.
@@ -21,14 +21,14 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,7 +39,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
@@ -55,8 +56,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.withFrameNanos
 import com.convx.music.lyrics.LyricsEntry
-import com.convx.music.lyrics.GROUP_AGENT_ID
-import com.convx.music.lyrics.primaryAgentId
 import kotlinx.coroutines.isActive
 
 /**
@@ -86,13 +85,14 @@ fun AppleMusicV3Lyrics(
         var lastSampleNanos = 0L
         while (isActive) {
             withFrameNanos { frameTimeNanos ->
-                // 30 Hz is sufficient for word highlighting and halves continuous
-                // playhead-driven Compose invalidations on mid-range devices.
-                if (lastSampleNanos == 0L || frameTimeNanos - lastSampleNanos >= 33_000_000L) {
+                // 24 Hz keeps karaoke responsive while avoiding a display-refresh-rate
+                // recomposition loop on low-power devices.
+                if (lastSampleNanos == 0L || frameTimeNanos - lastSampleNanos >= 42_000_000L) {
                     framePosition = positionMs()
                     lastSampleNanos = frameTimeNanos
                 }
             }
+
         }
     }
 
@@ -111,13 +111,6 @@ fun AppleMusicV3Lyrics(
             // cancelling one 550ms animation and starting another on every lyric boundary.
             listState.followLyricLine(activeIndex, animate = true, rubber = lyricRubber)
         }
-    }
-
-    // Shared/group vocals are not a new singer turn and must not change the side.
-    val agents = remember(lines) {
-        lines.mapNotNull { entry ->
-            entry.agent?.let(::primaryAgentId)?.takeUnless { it == GROUP_AGENT_ID }
-        }.distinct()
     }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -150,32 +143,51 @@ fun AppleMusicV3Lyrics(
                 } * if (isBackground) 0.88f else 1f
                 val alpha by animateFloatAsState(targetAlpha, spring(dampingRatio = 0.82f, stiffness = 260f), label = "appleV3Alpha")
                 val scale by animateFloatAsState(targetScale, spring(dampingRatio = 0.78f, stiffness = 230f), label = "appleV3Scale")
-                val blurRadius = if (distance >= 2) (distance - 1) * 1.1f else 0f
                 val translation by entry.translatedTextFlow.collectAsStateWithLifecycle()
                 val romanized by entry.romanizedTextFlow.collectAsStateWithLifecycle()
 
-                val normalizedAgent = entry.agent?.let(::primaryAgentId)
-                val agentIndex = normalizedAgent?.takeUnless { it == GROUP_AGENT_ID }
-                    ?.let { agents.indexOf(it) } ?: -1
-                val isDuetSide = agentIndex >= 0 && agents.size > 1
-                val lineAlignment = when {
-                    isDuetSide && agentIndex % 2 == 1 -> Alignment.End
-                    else -> Alignment.Start
-                }
-                val lineTextAlign = when {
-                    isDuetSide && agentIndex % 2 == 1 -> TextAlign.End
-                    else -> TextAlign.Start
+                // Keep the lyric stage centered so the words remain the visual focus on
+                // both phones and tablets. Singer metadata still affects timing, but
+                // never pushes the current line away from the beat.
+                val lineAlignment = Alignment.CenterHorizontally
+                val lineTextAlign = TextAlign.Center
+                val beatPulse = if (isActive) {
+                    1f + kotlin.math.sin(framePosition / 145f) * 0.012f
+                } else {
+                    1f
                 }
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                if (isActive) {
+                                    listOf(
+                                        accentColor.copy(alpha = 0.08f),
+                                        textColor.copy(alpha = 0.025f),
+                                        accentColor.copy(alpha = 0.08f),
+                                    )
+                                } else {
+                                    listOf(
+                                        Color.Transparent,
+                                        Color.Transparent,
+                                        Color.Transparent,
+                                    )
+                                },
+                            ),
+                        )
+                        .border(
+                            width = if (isActive) 1.dp else 0.dp,
+                            color = accentColor.copy(alpha = if (isActive) 0.22f else 0f),
+                            shape = RoundedCornerShape(28.dp),
+                        )
                         .graphicsLayer {
                             this.alpha = alpha
-                            scaleX = scale
-                            scaleY = scale
+                            scaleX = scale * beatPulse
+                            scaleY = scale * beatPulse
                         }
-                        .blur(blurRadius.dp)
                         .clickable { onSeek(entry.time) }
                         .padding(
                             horizontal = if (isBackground) 28.dp else 0.dp,
@@ -183,6 +195,35 @@ fun AppleMusicV3Lyrics(
                         ),
                     horizontalAlignment = lineAlignment,
                 ) {
+                    if (isActive) {
+                        val transition = rememberInfiniteTransition(label = "neroxBeatBubbles")
+                        val bubbleAlpha by transition.animateFloat(
+                            initialValue = 0.35f,
+                            targetValue = 0.85f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(durationMillis = 620),
+                                repeatMode = RepeatMode.Reverse,
+                            ),
+                            label = "neroxBeatBubbleAlpha",
+                        )
+                        Row(
+                            modifier = Modifier
+                                .padding(top = 8.dp, bottom = 2.dp)
+                                .graphicsLayer {
+                                    this.alpha = bubbleAlpha
+                                    scaleX = 0.96f + bubbleAlpha * 0.08f
+                                    scaleY = 0.96f + bubbleAlpha * 0.08f
+                                },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "•  •  •",
+                                color = accentColor,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
                     val words = remember(entry) {
                         val timed = entry.words.orEmpty()
                         if (timed.isNotEmpty()) {
@@ -270,7 +311,7 @@ fun AppleMusicV3Lyrics(
                         lineHeight = (fontSize * lineSpacing.coerceIn(1.12f, 1.45f)).sp,
                         style = TextStyle(
                             shadow = if (isActive) {
-                                Shadow(color = accentColor.copy(alpha = 0.18f), blurRadius = 12f)
+                                Shadow(color = accentColor.copy(alpha = 0.16f), blurRadius = 8f)
                             } else Shadow(Color.Transparent, blurRadius = 0f)
                         ),
                     )

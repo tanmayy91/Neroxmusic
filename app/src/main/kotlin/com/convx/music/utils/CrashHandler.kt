@@ -1,5 +1,5 @@
 /**
- * NexaMusic Project (C) 2026
+ * Nerox Music Project (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -64,7 +64,7 @@ class CrashHandler private constructor(
         }.toString()
 
         return buildString {
-            appendLine("NexaMusic Crash Report")
+            appendLine("Nerox Music Crash Report")
             appendLine("=".repeat(50))
             appendLine()
             appendLine("Manufacturer: ${Build.MANUFACTURER}")
