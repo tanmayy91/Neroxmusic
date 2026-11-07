@@ -34,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -57,6 +56,7 @@ import com.convx.music.lyrics.LyricsUtils.parseLyrics
 import com.convx.music.lyrics.primaryLyricLineIndex
 import com.convx.music.models.MediaMetadata
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 private val CinematicCrimson = Color(0xFFE5002B)
 private val CinematicDeepRed = Color(0xFF28000A)
@@ -88,9 +88,9 @@ fun CinematicLyrics(
     var position by remember { mutableLongStateOf(0L) }
 
     LaunchedEffect(lyrics) {
-        while (true) {
+        while (isActive) {
             position = sliderPositionProvider() ?: playerConnection.player.currentPosition
-            delay(50L)
+            delay(100L)
         }
     }
 
@@ -122,11 +122,10 @@ fun CinematicLyrics(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .blur(22.dp)
                 .graphicsLayer {
                     scaleX = animatedZoom
                     scaleY = animatedZoom
-                    alpha = 0.42f
+                    alpha = 0.30f
                 },
         )
         Box(
@@ -134,7 +133,7 @@ fun CinematicLyrics(
                 .fillMaxSize()
                 .background(
                     Brush.radialGradient(
-                        colors = listOf(Color(0xFF9D0A27).copy(alpha = 0.58f), Color.Black.copy(alpha = 0.94f)),
+                        colors = listOf(Color(0xFF9D0A27).copy(alpha = 0.42f), Color.Black.copy(alpha = 0.94f)),
                     ),
                 ),
         )
@@ -182,8 +181,7 @@ private fun BackgroundLyricTypography(lines: List<LyricsEntry>, currentIndex: In
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 10.dp)
-            .graphicsLayer { rotationZ = -2f },
+            .padding(horizontal = 18.dp),
         verticalArrangement = Arrangement.Center,
     ) {
         visible.forEach { (offset, line) ->
@@ -197,7 +195,7 @@ private fun BackgroundLyricTypography(lines: List<LyricsEntry>, currentIndex: In
                     1 -> 0.52f
                     else -> 0.28f
                 }),
-                fontSize = if (distance == 0) 68.sp else 56.sp,
+                fontSize = if (distance == 0) 56.sp else 42.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = (-2).sp,
                 style = MaterialTheme.typography.displayLarge.copy(
@@ -206,7 +204,7 @@ private fun BackgroundLyricTypography(lines: List<LyricsEntry>, currentIndex: In
                 modifier = Modifier
                     .fillMaxWidth()
                     .alpha(if (distance == 0) 1f else 0.8f)
-                    .padding(vertical = 2.dp),
+                    .padding(vertical = 4.dp),
             )
         }
     }

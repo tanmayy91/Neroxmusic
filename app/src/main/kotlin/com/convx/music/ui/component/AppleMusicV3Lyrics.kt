@@ -85,9 +85,9 @@ fun AppleMusicV3Lyrics(
         var lastSampleNanos = 0L
         while (isActive) {
             withFrameNanos { frameTimeNanos ->
-                // 24 Hz keeps karaoke responsive while avoiding a display-refresh-rate
-                // recomposition loop on low-power devices.
-                if (lastSampleNanos == 0L || frameTimeNanos - lastSampleNanos >= 42_000_000L) {
+                // 15 Hz is enough for smooth word highlighting without forcing every
+                // visible lyric row through a display-refresh-rate recomposition loop.
+                if (lastSampleNanos == 0L || frameTimeNanos - lastSampleNanos >= 67_000_000L) {
                     framePosition = positionMs()
                     lastSampleNanos = frameTimeNanos
                 }
