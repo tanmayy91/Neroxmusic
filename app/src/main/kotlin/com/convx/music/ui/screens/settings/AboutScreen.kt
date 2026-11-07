@@ -152,7 +152,7 @@ fun AboutScreen(
             items = listOf(
                 IosSettingsItem(
                     icon = rememberVectorPainter(SfSymbols.Monochrome.SFPersonCropCircleBadgeExclamationmark),
-                    title = { Text("Smelokuhle (Mahungela)") },
+                    title = { Text("Tanmay") },
                     description = { Text("Nerox Music developer", color = AppTheme.colorScheme.primary) },
                     tintIcon = false,
                     iconShape = cookieShape,
