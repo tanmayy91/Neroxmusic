@@ -146,14 +146,21 @@ fun AboutScreen(
             }
         }
         
-        // Developer Section
+        // Credits Section
         IosSettingsGroup(
-            title = stringResource(R.string.developer_section),
+            title = "Credits",
             items = listOf(
                 IosSettingsItem(
                     icon = rememberVectorPainter(SfSymbols.Monochrome.SFPersonCropCircleBadgeExclamationmark),
-                    title = { Text("Tanmay") },
-                    description = { Text("Nerox Music developer", color = AppTheme.colorScheme.primary) },
+                    title = { Text("Owned by") },
+                    description = { Text("Nerox Studios", color = AppTheme.colorScheme.primary) },
+                    tintIcon = false,
+                    iconShape = cookieShape,
+                ),
+                IosSettingsItem(
+                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFPersonCropCircleBadgeExclamationmark),
+                    title = { Text("Developed and maintained by") },
+                    description = { Text("Tanmay", color = AppTheme.colorScheme.primary) },
                     tintIcon = false,
                     iconShape = cookieShape,
                     onClick = { uriHandler.safeOpenUri(context, "https://github.com/tanmayy91") }
@@ -174,8 +181,8 @@ fun AboutScreen(
                 ),
                 IosSettingsItem(
                     icon = rememberVectorPainter(SfSymbols.Monochrome.SFEllipsisBubble),
-                    title = { Text(stringResource(R.string.discord_channel)) },
-                    description = { Text(stringResource(R.string.join_discord)) },
+                    title = { Text("Support server") },
+                    description = { Text("Discord") },
                     onClick = { uriHandler.safeOpenUri(context, "https://discord.gg/D8fYQKUEzw") }
                 )
             )
@@ -206,6 +213,5 @@ fun AboutScreen(
             )
         )
         Spacer(modifier = Modifier.height(20.dp))
-    
     }
 }
