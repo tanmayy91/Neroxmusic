@@ -74,56 +74,78 @@ jobs:
             -validity 10000 \
             -dname "CN=Android Debug,O=Android,C=US"
 
-      - name: Validate release signing secrets
+      - name: Prepare release signing material
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE }}
-          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          set -euo pipefail
-          for name in KEYSTORE_BASE64 STORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
-            if [[ -z "${!name}" ]]; then
-              echo "::error::Required GitHub Actions secret $name is missing."
-              exit 1
-            fi
-          done
-
-      - name: Decode release keystore
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE }}
+          CONFIGURED_KEYSTORE_BASE64: ${{ secrets.KEYSTORE }}
+          CONFIGURED_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          CONFIGURED_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          CONFIGURED_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           set -euo pipefail
           mkdir -p app/keystore
-          # Remove accidental whitespace/newlines before decoding the one-line GitHub secret.
-          printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > app/keystore/release.keystore
-          if [[ ! -s app/keystore/release.keystore ]]; then
-            echo "::error::Decoded release keystore is empty."
+
+          missing=()
+          for name in CONFIGURED_KEYSTORE_BASE64 CONFIGURED_STORE_PASSWORD CONFIGURED_KEY_ALIAS CONFIGURED_KEY_PASSWORD; do
+            [[ -n "${!name}" ]] || missing+=("$name")
+          done
+
+          if (( ${#missing[@]} == 0 )); then
+            echo "Using the configured release signing keystore."
+            printf '%s' "$CONFIGURED_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > app/keystore/release.keystore
+            STORE_PASSWORD="$CONFIGURED_STORE_PASSWORD"
+            KEY_ALIAS="$CONFIGURED_KEY_ALIAS"
+            KEY_PASSWORD="$CONFIGURED_KEY_PASSWORD"
+          elif (( ${#missing[@]} == 4 )); then
+            echo "::warning::Release signing secrets are not configured. Generating a keystore for this run. Save this signing material as repository secrets before publishing updates, otherwise future APKs will not be installable as upgrades."
+            STORE_PASSWORD="$(openssl rand -hex 32)"
+            KEY_PASSWORD="$STORE_PASSWORD"
+            KEY_ALIAS="nexamusic-release"
+            keytool -genkeypair -v \
+              -keystore app/keystore/release.keystore \
+              -storetype JKS \
+              -storepass "$STORE_PASSWORD" \
+              -keypass "$KEY_PASSWORD" \
+              -alias "$KEY_ALIAS" \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=NexaMusic Release,O=NexaMusic,C=US"
+            {
+              echo '### Generated release signing material'
+              echo
+              echo 'This run generated a temporary signing identity because the release secrets were absent.'
+              echo 'Store the generated keystore and credentials as `KEYSTORE`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD` before the next release.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            printf '::error::Release signing secrets are partially configured; set all four or remove all four. Missing: '
+            printf '%s ' "${missing[@]}"
+            printf '\n'
             exit 1
           fi
-          echo "Decoded keystore size: $(wc -c < app/keystore/release.keystore | tr -d ' ') bytes"
-          file app/keystore/release.keystore
 
-      - name: Validate decoded JKS keystore
-        env:
-          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        run: |
-          set -euo pipefail
+          if [[ ! -s app/keystore/release.keystore ]]; then
+            echo "::error::Release keystore is empty."
+            exit 1
+          fi
           keytool -list \
             -keystore app/keystore/release.keystore \
             -storetype JKS \
             -storepass "$STORE_PASSWORD" \
-            -alias "$KEY_ALIAS"
+            -alias "$KEY_ALIAS" >/dev/null
           echo "Release keystore format and alias validated."
+
+          echo "::add-mask::$STORE_PASSWORD"
+          echo "::add-mask::$KEY_PASSWORD"
+          {
+            echo "STORE_PASSWORD=$STORE_PASSWORD"
+            echo "KEY_ALIAS=$KEY_ALIAS"
+            echo "KEY_PASSWORD=$KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
 
       - name: Build Universal GMS Release APK
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
-          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
