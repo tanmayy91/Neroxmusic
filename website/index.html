@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NeroxMusic — Download</title>
+  <meta name="description" content="Download the latest version of NeroxMusic for Android." />
+  <style>
+    :root { color-scheme: dark; --bg:#070812; --panel:#111326; --text:#f8f7ff; --muted:#a9abc2; --line:#282b45; --accent:#b7ff3c; --accent-2:#e1ff9a; --violet:#8b5cf6; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: radial-gradient(circle at 12% 2%, #32206b 0, transparent 27%), radial-gradient(circle at 88% 70%, #142d26 0, transparent 30%), linear-gradient(145deg, #070812, #0b0d19 55%, #090c12); color:var(--text); }
+    main { width:min(1060px, 100%); margin:auto; padding:28px 22px 58px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+    .brand { display:flex; align-items:center; gap:11px; font-weight:750; letter-spacing:-.03em; font-size:1.15rem; }
+    .mark { width:36px; height:36px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(145deg,var(--accent),#7bffb2); color:#111; font-size:18px; box-shadow:0 0 32px #a8ff4538; }
+    .version { color:var(--muted); font:500 .8rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .hero { min-height:560px; display:flex; align-items:center; padding:90px 0 78px; }
+    .eyebrow { color:var(--accent); text-transform:uppercase; letter-spacing:.16em; font-size:.72rem; font-weight:800; }
+    h1 { margin:18px 0 20px; max-width:650px; font-size:clamp(3.5rem, 9vw, 7.8rem); line-height:.88; letter-spacing:-.09em; } h1 em { color:var(--accent); font-style:normal; }
+    .lede { max-width:520px; color:var(--muted); font-size:1.08rem; line-height:1.65; }
+    .actions { display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin-top:34px; }
+    a.button { display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:14px 19px; border-radius:13px; font-weight:800; text-decoration:none; transition:transform .2s, box-shadow .2s, background .2s; }
+    a.button:hover { transform:translateY(-2px); }
+    .primary { background:var(--accent); color:#0b1104; box-shadow:0 12px 32px #a8ff4525; }
+    .primary:hover { box-shadow:0 14px 38px #a8ff4545; }
+    .secondary { color:var(--text); border:1px solid var(--line); background:#ffffff06; }
+    .secondary:hover { background:#ffffff0d; }
+    .note { color:#71788b; font-size:.78rem; margin-top:16px; }
+    .features { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; border-top:1px solid var(--line); padding-top:25px; }
+    .feature { padding:21px; border:1px solid var(--line); border-radius:18px; background:linear-gradient(145deg,#ffffff08,#ffffff02); box-shadow:0 14px 38px #00000018; }
+    .gallery { margin-top:78px; }
+    .section-heading { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:20px; }
+    .section-heading h2 { margin:0; font-size:clamp(1.7rem,4vw,2.8rem); letter-spacing:-.06em; }
+    .section-heading p { max-width:300px; margin:0; color:var(--muted); font-size:.88rem; line-height:1.5; text-align:right; }
+    .screens { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .shot { margin:0; padding:8px; border:1px solid var(--line); border-radius:22px; background:#ffffff08; box-shadow:0 18px 45px #00000026; overflow:hidden; }
+    .shot img { display:block; width:100%; aspect-ratio: .62; object-fit:cover; object-position:top; border-radius:15px; background:#151827; transition:transform .35s ease; }
+    .shot:hover img { transform:scale(1.025); }
+    .shot figcaption { padding:13px 8px 6px; color:#dfe4f7; font-size:.82rem; font-weight:700; }
+    .shot figcaption span { display:block; margin-top:4px; color:#747b91; font-size:.72rem; font-weight:500; }
+    .feature strong { display:block; margin-bottom:7px; font-size:.97rem; } .feature span { color:var(--muted); font-size:.88rem; line-height:1.5; }
+    footer { margin-top:52px; color:#697184; font-size:.78rem; display:flex; justify-content:space-between; gap:16px; border-top:1px solid var(--line); padding-top:19px; }
+    @media (max-width:720px) { main { padding:22px 18px 42px; } .hero { padding:75px 0 55px; } h1 { font-size:clamp(4rem, 22vw, 6rem); } .features, .screens { grid-template-columns:1fr; } .section-heading { display:block; } .section-heading p { margin-top:10px; text-align:left; } footer { flex-direction:column; } }
+
+    /* Premium multi-accent palette */
+    :root {
+      --accent: #a78bfa;
+      --accent-2: #22d3ee;
+      --accent-3: #f472b6;
+    }
+    body {
+      background:
+        radial-gradient(circle at 12% 8%, rgba(167,139,250,.18), transparent 30rem),
+        radial-gradient(circle at 88% 18%, rgba(34,211,238,.13), transparent 28rem),
+        linear-gradient(145deg, #090b16 0%, #11152a 52%, #160e25 100%);
+    }
+    .eyebrow, .badge { color: var(--accent-2); }
+    .download-button, .primary-button {
+      background: linear-gradient(110deg, var(--accent), var(--accent-3) 52%, var(--accent-2));
+      box-shadow: 0 14px 34px rgba(167,139,250,.25);
+    }
+    .download-button:hover, .primary-button:hover { filter: saturate(1.15) brightness(1.08); }
+    .screenshot-card:nth-child(2) { border-color: rgba(34,211,238,.32); }
+    .screenshot-card:nth-child(3) { border-color: rgba(244,114,182,.32); }
+  </style>
+</head>
+<body>
+  <main>
+    <header><div class="brand"><span class="mark">♪</span> NeroxMusic</div><span class="version" id="version">latest release</span></header>
+    <section class="hero">
+      <div><div class="eyebrow">A better way to listen</div><h1>Music,<br><em>without</em> noise.</h1><p class="lede">A focused Android music player for discovering, organizing, and enjoying your library — with a clean, calm experience that stays out of your way.</p><div class="actions"><a id="download" class="button primary" href="#download">Preparing download <span>↓</span></a><span class="button secondary" aria-label="Release information">Latest release included</span></div><div class="note">Android 8.0+ <span>·</span> Direct APK <span>·</span> Free and open source</div></div>
+    </section>
+    <section class="features"><div class="feature"><strong>Made for focus</strong><span>Simple controls and a distraction-free listening flow.</span></div><div class="feature"><strong>Your library, your way</strong><span>Keep playlists, albums, and favorites close at hand.</span></div><div class="feature"><strong>Always current</strong><span>This page links directly to the newest available release.</span></div></section>
+    <section class="gallery" aria-labelledby="preview-title"><div class="section-heading"><h2 id="preview-title">See it in motion.</h2><p>A quick look at the calm, focused player experience inside NeroxMusic.</p></div><div class="screens"><figure class="shot"><img src="./HomeUI.png" alt="NeroxMusic home screen" loading="lazy"><figcaption>Home <span>Find your next favorite</span></figcaption></figure><figure class="shot"><img src="./AlbumUI.png" alt="NeroxMusic album screen" loading="lazy"><figcaption>Albums <span>Keep your library organized</span></figcaption></figure></div></section>
+    <footer><span>© NeroxMusic</span><span>Official release channel <b>↗</b></span></footer>
+  </main>
+  <script>
+    fetch('https://api.github.com/repos/tanmayy91/Neroxmusic/releases/latest', { headers: { Accept: 'application/vnd.github+json' } }).then(r => r.ok ? r.json() : Promise.reject()).then(release => { document.querySelector('#version').textContent = release.tag_name || 'latest release'; const apk = (release.assets || []).find(asset => asset.name.toLowerCase().endsWith('.apk')); if (apk) { const link = document.querySelector('#download'); link.href = apk.browser_download_url; link.download = apk.name; link.removeAttribute('target'); link.removeAttribute('rel'); link.innerHTML = 'Download ' + (release.tag_name || 'latest') + ' <span>↓</span>'; } else { const link = document.querySelector('#download'); link.textContent = 'Download unavailable'; link.setAttribute('aria-disabled', 'true'); link.style.opacity = '.55'; link.style.pointerEvents = 'none'; } }).catch(() => { const link = document.querySelector('#download'); link.textContent = 'Download unavailable'; link.setAttribute('aria-disabled', 'true'); link.style.opacity = '.55'; link.style.pointerEvents = 'none'; });
+  </script>
+</body>
+</html>
