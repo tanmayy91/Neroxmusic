@@ -12,7 +12,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.provider.Settings
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -109,6 +111,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -145,6 +148,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import com.convx.music.constants.IsFirstRunKey
 import com.convx.music.ui.theme.ConvxTheme
 import com.convx.music.ui.utils.safeOpenUri
@@ -185,16 +193,21 @@ class WelcomeActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = AppTheme.colorScheme.background
                     ) {
-                        WelcomePagerScreen(onFinished = {
-                            lifecycleScope.launch {
-                                dataStore.edit { it[IsFirstRunKey] = false }
-                                if (forceShow) {
-                                    finish()
-                                } else {
-                                    finishOnboarding()
+                        var showAppIntro by remember { mutableStateOf(isFirstRun && !forceShow) }
+                        if (showAppIntro) {
+                            AppIntroVideo(onFinished = { showAppIntro = false })
+                        } else {
+                            WelcomePagerScreen(onFinished = {
+                                lifecycleScope.launch {
+                                    dataStore.edit { it[IsFirstRunKey] = false }
+                                    if (forceShow) {
+                                        finish()
+                                    } else {
+                                        finishOnboarding()
+                                    }
                                 }
-                            }
-                        })
+                            })
+                        }
                     }
                 }
             }
@@ -208,6 +221,57 @@ class WelcomeActivity : ComponentActivity() {
         @Suppress("DEPRECATION")
         overridePendingTransition(0, 0)
     }
+}
+
+private const val APP_INTRO_VIDEO_URL =
+    "https://pdirzojzcohajcvcqbtk.supabase.co/storage/v1/object/sign/assets/video_20261114_152732_edit.mp4?token=eyJraWQiOiIwMDI1MGUxYy05ZGRlLTQ0YWQtYjcyZi0xNWZjMTExZWJhMmUiLCJhbGciOiJFUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvdmlkZW9fMjAyNjExMTRfMTUyNzMyX2VkaXQubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5NDY1MDQwNywiZXhwIjo0OTQ4MjUwNDA3fQ.YOIl_ZMx9esOvImfKPRYnAcKmdHMRVHmjBlREpcPQxk2U3jca3MPGzFQbSBHWp0-CFTls_Op-A7g0KoSASl5Dg"
+
+@Composable
+private fun AppIntroVideo(onFinished: () -> Unit) {
+    val context = LocalContext.current
+    val latestOnFinished by rememberUpdatedState(onFinished)
+    val player = remember(context) {
+        ExoPlayer.Builder(context).build().apply {
+            setMediaItem(MediaItem.fromUri(APP_INTRO_VIDEO_URL))
+            playWhenReady = true
+        }
+    }
+
+    DisposableEffect(player) {
+        val listener = object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_ENDED) {
+                    latestOnFinished()
+                }
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                Log.e("WelcomeActivity", "Unable to play app intro video", error)
+                latestOnFinished()
+            }
+        }
+        player.addListener(listener)
+        player.prepare()
+        onDispose {
+            player.removeListener(listener)
+            player.release()
+        }
+    }
+
+    AndroidView(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        factory = {
+            PlayerView(it).apply {
+                this.player = player
+                useController = false
+                resizeMode = PlayerView.RESIZE_MODE_FIT
+                setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
+            }
+        },
+        update = { it.player = player },
+    )
 }
 
 @OptIn(ExperimentalTextApi::class)
