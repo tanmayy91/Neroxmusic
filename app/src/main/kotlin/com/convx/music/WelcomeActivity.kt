@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalTextApi::class)
+@file:OptIn(ExperimentalTextApi::class, UnstableApi::class)
 
 package com.convx.music
 
@@ -163,6 +163,19 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 import androidx.datastore.preferences.core.edit
+import android.app.Application
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultLoadControl
+import kotlinx.coroutines.delay
 
 data class OnboardingPageInfo(
     val content: @Composable (onUpdateScrollState: (Boolean) -> Unit) -> Unit
@@ -187,6 +200,15 @@ class WelcomeActivity : ComponentActivity() {
                 return@launch
             }
 
+            // Creating this ViewModel builds the player and calls prepare(), so the video
+            // starts downloading right here, at app open, while the "rotate your phone"
+            // hint is on screen. Replays (FORCE_SHOW) skip the intro video as before.
+            val introVideo = if (isFirstRun && !forceShow) {
+                ViewModelProvider(this@WelcomeActivity)[IntroVideoViewModel::class.java]
+            } else {
+                null
+            }
+
             enableEdgeToEdge()
             setContent {
                 ConvxTheme {
@@ -194,9 +216,19 @@ class WelcomeActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = AppTheme.colorScheme.background
                     ) {
-                        var showAppIntro by remember { mutableStateOf(isFirstRun && !forceShow) }
-                        if (showAppIntro) {
-                            AppIntroVideo(onFinished = { showAppIntro = false })
+                        // rememberSaveable: the rotation below may recreate the Activity, and
+                        // the intro must not start over (or come back) when that happens.
+                        var showAppIntro by rememberSaveable { mutableStateOf(introVideo != null) }
+                        if (showAppIntro && introVideo != null) {
+                            AppIntroVideo(
+                                player = introVideo.player,
+                                onRequestLandscape = { setIntroLandscape(true) },
+                                onFinished = {
+                                    setIntroLandscape(false)
+                                    introVideo.releasePlayer()
+                                    showAppIntro = false
+                                },
+                            )
                         } else {
                             WelcomePagerScreen(onFinished = {
                                 lifecycleScope.launch {
@@ -215,6 +247,28 @@ class WelcomeActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * The intro video is 16:9, so it plays full-screen in landscape. When it is over, the
+     * orientation goes back to whatever AndroidManifest.xml declares for this Activity.
+     */
+    @Suppress("DEPRECATION")
+    private fun setIntroLandscape(enabled: Boolean) {
+        requestedOrientation = if (enabled) {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        } else {
+            runCatching { packageManager.getActivityInfo(componentName, 0).screenOrientation }
+                .getOrDefault(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
+        }
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        if (enabled) {
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+        } else {
+            controller.show(WindowInsetsCompat.Type.systemBars())
+        }
+    }
+
     private fun finishOnboarding() {
         startActivity(Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_PLAY_INTRO, true))
         finish()
@@ -225,25 +279,79 @@ class WelcomeActivity : ComponentActivity() {
 }
 
 private const val APP_INTRO_VIDEO_URL =
-    "https://pdirzojzcohajcvcqbtk.supabase.co/storage/v1/object/sign/assets/video_20261114_163940_edit.mp4?token=eyJraWQiOiIwMDI1MGUxYy05ZGRlLTQ0YWQtYjcyZi0xNWZjMTExZWJhMmUiLCJhbGciOiJFUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvdmlkZW9fMjAyNjExMTRfMTYzOTQwX2VkaXQubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5NDY1NDY4OCwiZXhwIjo2MTE0NjU0Njg4fQ.o1-PSQ5syLOD-Lb9AAyso4_SaovSDvrCXrjqcEHGx9REj8UYGED1O0vjGzpqseWWZS8DuI9v1Vgvu1iezdTQ7gTExZWJhMmUiLCJhbGciOiJFUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvdmlkZW9fMjAyNjExMTRfMTUyNzMyX2VkaXQubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5NDY1MDQwNywiZXhwIjo0OTQ4MjUwNDA3fQ.YOIl_ZMx9esOvImfKPRYnAcKmdHMRVHmjBlREpcPQxk2U3jca3MPGzFQbSBHWp0-CFTls_Op-A7g0KoSASl5Dg"
+    "https://pdirzojzcohajcvcqbtk.supabase.co/storage/v1/object/sign/assets/video_20261114_163940_edit.mp4?token=eyJraWQiOiIwMDI1MGUxYy05ZGRlLTQ0YWQtYjcyZi0xNWZjMTExZWJhMmUiLCJhbGciOiJFUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvdmlkZW9fMjAyNjExMTRfMTYzOTQwX2VkaXQubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5NDY1NDY4OCwiZXhwIjo2MTE0NjU0Njg4fQ.o1-PSQ5syLOD-Lb9AAyso4_SaovSDvrCXrjqcEHGx9REj8UYGED1O0vjGzpqseWWZS8DuI9v1Vgvu1iezdTQ7g"
+
+/** If the video still has not started this long after app open (bad network), skip it instead of hanging. */
+private const val INTRO_LOAD_TIMEOUT_MS = 15_000L
+
+/** After asking for landscape, wait this long for the rotation, then play anyway (tablets, foldables, split-screen). */
+private const val INTRO_ROTATION_GRACE_MS = 900L
+
+/**
+ * Owns the intro-video player. It is built (and starts buffering) the moment the first-run
+ * check passes, and it survives the portrait -> landscape rotation even if the Activity is recreated.
+ */
+class IntroVideoViewModel(application: Application) : AndroidViewModel(application) {
+    private var released = false
+
+    val player: ExoPlayer = ExoPlayer.Builder(application)
+        .setLoadControl(
+            DefaultLoadControl.Builder()
+                .setBufferDurationsMs(
+                    /* minBufferMs = */ 5_000,
+                    /* maxBufferMs = */ 30_000,
+                    // Default is 2500 ms; start as soon as half a second is buffered.
+                    /* bufferForPlaybackMs = */ 500,
+                    /* bufferForPlaybackAfterRebufferMs = */ 1_000,
+                )
+                .build()
+        )
+        .build()
+        .apply {
+            setMediaItem(MediaItem.fromUri(APP_INTRO_VIDEO_URL))
+            // Stay paused until the screen is landscape; see AppIntroVideo.
+            playWhenReady = false
+            prepare()
+        }
+
+    fun releasePlayer() {
+        if (released) return
+        released = true
+        player.release()
+    }
+
+    override fun onCleared() {
+        releasePlayer()
+    }
+}
 
 @Composable
-private fun AppIntroVideo(onFinished: () -> Unit) {
-    val context = LocalContext.current
+private fun AppIntroVideo(
+    player: ExoPlayer,
+    onRequestLandscape: () -> Unit,
+    onFinished: () -> Unit,
+) {
     val latestOnFinished by rememberUpdatedState(onFinished)
-    val player = remember(context) {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(APP_INTRO_VIDEO_URL))
-            playWhenReady = true
-        }
-    }
+    val latestOnRequestLandscape by rememberUpdatedState(onRequestLandscape)
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    // True once enough is buffered to play. The player was prepared at app open, so it can
+    // already be ready by the time this screen is composed.
+    var videoReady by remember(player) { mutableStateOf(player.playbackState == Player.STATE_READY) }
+    // The hint stays up until the video is really playing.
+    var videoPlaying by rememberSaveable { mutableStateOf(false) }
 
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
-                if (playbackState == Player.STATE_ENDED) {
-                    latestOnFinished()
+                when (playbackState) {
+                    Player.STATE_READY -> videoReady = true
+                    Player.STATE_ENDED -> latestOnFinished()
                 }
+            }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isPlaying) videoPlaying = true
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -252,27 +360,110 @@ private fun AppIntroVideo(onFinished: () -> Unit) {
             }
         }
         player.addListener(listener)
-        player.prepare()
-        onDispose {
-            player.removeListener(listener)
-            player.release()
+        if (player.playerError != null || player.playbackState == Player.STATE_ENDED) {
+            latestOnFinished()
+        } else if (player.isPlaying) {
+            videoPlaying = true
         }
+        onDispose { player.removeListener(listener) }
     }
 
-    AndroidView(
+    // Ready -> go landscape, then play. If the screen does not rotate (tablet, split-screen),
+    // play after a short grace period instead of waiting forever.
+    LaunchedEffect(videoReady, isLandscape) {
+        if (!videoReady) return@LaunchedEffect
+        latestOnRequestLandscape()
+        if (!isLandscape) delay(INTRO_ROTATION_GRACE_MS)
+        player.playWhenReady = true
+    }
+
+    // Slow or no network: do not leave the user on a loading screen.
+    LaunchedEffect(Unit) {
+        delay(INTRO_LOAD_TIMEOUT_MS)
+        if (!videoPlaying) latestOnFinished()
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black),
-        factory = {
-            PlayerView(it).apply {
-                this.player = player
-                useController = false
-                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
-            }
-        },
-        update = { it.player = player },
+    ) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = {
+                PlayerView(it).apply {
+                    this.player = player
+                    useController = false
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
+                }
+            },
+            update = { it.player = player },
+        )
+        AnimatedVisibility(
+            visible = !videoPlaying,
+            enter = fadeIn(),
+            exit = fadeOut(tween(durationMillis = 350)),
+        ) {
+            RotatePhoneHint(isLandscape = isLandscape)
+        }
+    }
+}
+
+/** Shown while the intro video loads (about 4-5 seconds on a cold start). */
+@Composable
+private fun RotatePhoneHint(isLandscape: Boolean) {
+    val transition = rememberInfiniteTransition(label = "rotateHint")
+    val angle by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = -90f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1300, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "rotateHintAngle",
     )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(width = 34.dp, height = 58.dp)
+                .rotate(angle)
+                .border(BorderStroke(2.5.dp, NexaIntroColors.text), RoundedCornerShape(9.dp)),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            Box(
+                Modifier
+                    .padding(bottom = 6.dp)
+                    .size(width = 10.dp, height = 2.5.dp)
+                    .clip(CircleShape)
+                    .background(NexaIntroColors.text)
+            )
+        }
+        Spacer(Modifier.height(28.dp))
+        Text(
+            text = if (isLandscape) "Almost ready..." else "Rotate your phone",
+            fontFamily = GoogleSansFlex,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = NexaIntroColors.text,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = if (isLandscape) "Your intro is loading" else "Turn it sideways while your intro loads",
+            fontFamily = GoogleSansFlex,
+            fontSize = 14.sp,
+            color = NexaIntroColors.muted,
+            textAlign = TextAlign.Center,
+        )
+    }
 }
 
 @OptIn(ExperimentalTextApi::class)
