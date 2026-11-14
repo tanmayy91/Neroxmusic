@@ -8,6 +8,7 @@ package com.convx.music.ui.screens.settings
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -150,6 +151,7 @@ fun AppearanceSettings(
     activity: Activity,
     snackbarHostState: SnackbarHostState,
 ) {
+    val appearanceListState = rememberLazyListState()
     var showAppIconAvailableSoon by rememberSaveable { mutableStateOf(false) }
     if (showAppIconAvailableSoon) {
         AlertDialog(
@@ -357,6 +359,10 @@ fun AppearanceSettings(
         title = stringResource(R.string.appearance),
         pageColor = IosTheme.colors.systemGroupedBackground,
         horizontalPadding = 16.dp,
+        listState = appearanceListState,
+        background = {
+            AppearanceAnimationBackground(appearanceListState)
+        },
     ) {
         item(key = "all_appearance_settings") {
             Column {

@@ -110,6 +110,7 @@ fun SettingsLazyPage(
     maxContentWidth: Dp = SettingsContentMaxWidth,
     actions: @Composable () -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
+    background: @Composable BoxScope.() -> Unit = {},
     content: LazyListScope.() -> Unit,
 ) {
     androidx.compose.runtime.CompositionLocalProvider(
@@ -123,6 +124,7 @@ fun SettingsLazyPage(
         horizontalPadding = settingsGutter(horizontalPadding, maxContentWidth),
         actions = actions,
         listState = listState,
+        background = background,
         largeTitle = settingsLargeTitle(title),
         content = content,
     ) }

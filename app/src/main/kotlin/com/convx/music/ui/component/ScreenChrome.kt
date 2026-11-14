@@ -246,6 +246,7 @@ fun ScreenLazyPage(
     horizontalPadding: Dp = 0.dp,
     actions: @Composable () -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
+    background: @Composable BoxScope.() -> Unit = {},
     largeTitle: @Composable () -> Unit = { ScreenLargeTitle(title) },
     content: LazyListScope.() -> Unit,
 ) {
@@ -263,37 +264,40 @@ fun ScreenLazyPage(
             onBackLongClick = onBackLongClick,
             actions = actions,
         ) {
-            val sideInsets = LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal).asPaddingValues()
-            val direction = androidx.compose.ui.platform.LocalLayoutDirection.current
-            LazyColumn(
-                state = listState,
-                modifier = modifier.then(chrome.contentModifier()),
-                contentPadding = PaddingValues(
-                    start = sideInsets.calculateStartPadding(direction) + horizontalPadding,
-                    end = sideInsets.calculateEndPadding(direction) + horizontalPadding,
-                ),
-            ) {
-                item(key = "title") {
-                    Column {
-                        Spacer(
-                            Modifier.windowInsetsPadding(
-                                LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top),
-                            ),
-                        )
-                        largeTitle()
+            Box(Modifier.fillMaxSize()) {
+                background()
+                val sideInsets = LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal).asPaddingValues()
+                val direction = androidx.compose.ui.platform.LocalLayoutDirection.current
+                LazyColumn(
+                    state = listState,
+                    modifier = modifier.then(chrome.contentModifier()),
+                    contentPadding = PaddingValues(
+                        start = sideInsets.calculateStartPadding(direction) + horizontalPadding,
+                        end = sideInsets.calculateEndPadding(direction) + horizontalPadding,
+                    ),
+                ) {
+                    item(key = "title") {
+                        Column {
+                            Spacer(
+                                Modifier.windowInsetsPadding(
+                                    LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top),
+                                ),
+                            )
+                            largeTitle()
+                        }
                     }
-                }
 
-                content()
+                    content()
 
-                item(key = "screen_lazy_page_bottom_spacer") {
-                    Spacer(
-                        Modifier
-                            .height(80.dp)
-                            .windowInsetsPadding(
-                                LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom),
-                            ),
-                    )
+                    item(key = "screen_lazy_page_bottom_spacer") {
+                        Spacer(
+                            Modifier
+                                .height(80.dp)
+                                .windowInsetsPadding(
+                                    LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom),
+                                ),
+                        )
+                    }
                 }
             }
         }
