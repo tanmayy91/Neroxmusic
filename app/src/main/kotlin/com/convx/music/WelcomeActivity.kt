@@ -152,6 +152,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.convx.music.constants.IsFirstRunKey
 import com.convx.music.ui.theme.ConvxTheme
@@ -266,7 +267,7 @@ private fun AppIntroVideo(onFinished: () -> Unit) {
             PlayerView(it).apply {
                 this.player = player
                 useController = false
-                resizeMode = PlayerView.RESIZE_MODE_FIT
+                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
             }
         },
