@@ -105,15 +105,31 @@ fun CinematicLyrics(
     }
     val activeLine = lines.getOrNull(currentIndex)
     val isSeedheMautTrack = metadata?.artists?.any { artist ->
-        artist.name.trim().equals("Seedhe Maut", ignoreCase = true) ||
-            artist.name.trim().equals("Encore ABJ", ignoreCase = true) ||
-            artist.name.trim().equals("Calm", ignoreCase = true)
+        artist.name.trim().equals("Seedhe Maut", ignoreCase = true)
     } == true
     if (isSeedheMautTrack && lines.isNotEmpty()) {
         SeedheMautLyricsCanvas(
             lines = lines,
             currentIndex = currentIndex,
             positionMs = position + (currentSong?.song?.lyricsOffset?.toLong() ?: 0L),
+            modifier = modifier,
+        )
+        return
+    }
+    if (!isSeedheMautTrack) {
+        val lyricsOffset = currentSong?.song?.lyricsOffset?.toLong() ?: 0L
+        AppleMusicV3Lyrics(
+            lines = lines,
+            positionMs = {
+                (sliderPositionProvider() ?: playerConnection.player.currentPosition) + lyricsOffset
+            },
+            fontFamily = null,
+            fontSize = 34f,
+            lineSpacing = 18f,
+            showTranslation = false,
+            textColor = MaterialTheme.colorScheme.onBackground,
+            accentColor = MaterialTheme.colorScheme.primary,
+            onSeek = { playerConnection.player.seekTo((it - lyricsOffset).coerceAtLeast(0L)) },
             modifier = modifier,
         )
         return
