@@ -172,6 +172,7 @@ import com.convx.music.ui.component.backdrop.backdrops.rememberBackdropFreeze
 import com.convx.music.ui.component.backdrop.backdrops.rememberLayerBackdrop
 import com.convx.music.ui.component.NavigationTitle
 import com.convx.music.ui.component.SeedheMautProfileSneakPeek
+import com.convx.music.ui.component.SeedheMautScrollFrames
 import com.convx.music.ui.component.SongListItem
 import com.convx.music.ui.component.YouTubeGridItem
 import com.convx.music.ui.component.YouTubeListItem
@@ -612,6 +613,12 @@ fun ArtistScreen(
                                             onFrame = { heroVideoFrame.intValue++ }, onClick = {})
                                     }
                                     if (isSeedheMautArtist) {
+                                        SeedheMautScrollFrames(
+                                            scrollProgress = { heroScrollBlur },
+                                            fadeColor = tint,
+                                            enabled = !dataSaverEnabled,
+                                            modifier = Modifier.fillMaxSize(),
+                                        )
                                         SeedheMautProfileSneakPeek(
                                             scrollProgress = { heroScrollBlur },
                                             modifier = Modifier.fillMaxSize(),
@@ -685,6 +692,12 @@ fun ArtistScreen(
                                         onFrame = { heroVideoFrame.intValue++ }, onClick = {})
                                 }
                                 if (isSeedheMautArtist) {
+                                    SeedheMautScrollFrames(
+                                        scrollProgress = { heroScrollBlur },
+                                        fadeColor = tint,
+                                        enabled = !dataSaverEnabled,
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
                                     SeedheMautProfileSneakPeek(
                                         scrollProgress = { heroScrollBlur },
                                         modifier = Modifier.fillMaxSize(),
