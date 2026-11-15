@@ -7,11 +7,6 @@
 package com.convx.music.ui.component
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -20,16 +15,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,8 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
@@ -119,7 +108,7 @@ fun AppleMusicV3Lyrics(
             state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(vertical = verticalInset, horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(22.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             itemsIndexed(
@@ -131,99 +120,39 @@ fun AppleMusicV3Lyrics(
                 val isBackground = entry.isBackground
                 val targetAlpha = when {
                     isActive -> 1f
-                    distance == 1 -> 0.58f
-                    distance == 2 -> 0.30f
-                    else -> 0.16f
-                } * if (isBackground) 0.72f else 1f
+                    distance == 1 -> 0.68f
+                    distance == 2 -> 0.44f
+                    else -> 0.28f
+                } * if (isBackground) 0.78f else 1f
                 val targetScale = when (distance) {
                     0 -> 1f
-                    1 -> 0.91f
-                    2 -> 0.84f
-                    else -> 0.80f
-                } * if (isBackground) 0.88f else 1f
+                    1 -> 0.97f
+                    2 -> 0.94f
+                    else -> 0.92f
+                } * if (isBackground) 0.94f else 1f
                 val alpha by animateFloatAsState(targetAlpha, spring(dampingRatio = 0.82f, stiffness = 260f), label = "appleV3Alpha")
                 val scale by animateFloatAsState(targetScale, spring(dampingRatio = 0.78f, stiffness = 230f), label = "appleV3Scale")
                 val translation by entry.translatedTextFlow.collectAsStateWithLifecycle()
                 val romanized by entry.romanizedTextFlow.collectAsStateWithLifecycle()
 
-                // Keep the lyric stage centered so the words remain the visual focus on
-                // both phones and tablets. Singer metadata still affects timing, but
-                // never pushes the current line away from the beat.
                 val lineAlignment = Alignment.CenterHorizontally
                 val lineTextAlign = TextAlign.Center
-                val beatPulse = if (isActive) {
-                    1f + kotlin.math.sin(framePosition / 145f) * 0.012f
-                } else {
-                    1f
-                }
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                if (isActive) {
-                                    listOf(
-                                        accentColor.copy(alpha = 0.08f),
-                                        textColor.copy(alpha = 0.025f),
-                                        accentColor.copy(alpha = 0.08f),
-                                    )
-                                } else {
-                                    listOf(
-                                        Color.Transparent,
-                                        Color.Transparent,
-                                        Color.Transparent,
-                                    )
-                                },
-                            ),
-                        )
-                        .border(
-                            width = if (isActive) 1.dp else 0.dp,
-                            color = accentColor.copy(alpha = if (isActive) 0.22f else 0f),
-                            shape = RoundedCornerShape(28.dp),
-                        )
                         .graphicsLayer {
                             this.alpha = alpha
-                            scaleX = scale * beatPulse
-                            scaleY = scale * beatPulse
+                            scaleX = scale
+                            scaleY = scale
                         }
                         .clickable { onSeek(entry.time) }
                         .padding(
-                            horizontal = if (isBackground) 28.dp else 0.dp,
+                            horizontal = 8.dp,
                             vertical = if (isBackground) 2.dp else 0.dp,
                         ),
                     horizontalAlignment = lineAlignment,
                 ) {
-                    if (isActive) {
-                        val transition = rememberInfiniteTransition(label = "neroxBeatBubbles")
-                        val bubbleAlpha by transition.animateFloat(
-                            initialValue = 0.35f,
-                            targetValue = 0.85f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(durationMillis = 620),
-                                repeatMode = RepeatMode.Reverse,
-                            ),
-                            label = "neroxBeatBubbleAlpha",
-                        )
-                        Row(
-                            modifier = Modifier
-                                .padding(top = 8.dp, bottom = 2.dp)
-                                .graphicsLayer {
-                                    this.alpha = bubbleAlpha
-                                    scaleX = 0.96f + bubbleAlpha * 0.08f
-                                    scaleY = 0.96f + bubbleAlpha * 0.08f
-                                },
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = "•  •  •",
-                                color = accentColor,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                    }
                     val words = remember(entry) {
                         val timed = entry.words.orEmpty()
                         if (timed.isNotEmpty()) {
@@ -342,53 +271,6 @@ fun AppleMusicV3Lyrics(
                     }
                 }
 
-                // Apple Music-style interlude ellipsis appears only in a real timed gap
-                // between the end of this line and the next lyric line.
-                val nextEntry = lines.getOrNull(index + 1)
-                val lastWordEndMs = entry.words?.lastOrNull()?.endTime?.let { (it * 1000.0).toLong() }
-                val nextLineTime = nextEntry?.time
-                val interludeStart = lastWordEndMs
-                val showInterlude = isActive && interludeStart != null && nextLineTime != null &&
-                    nextLineTime - interludeStart >= 700L &&
-                    framePosition >= interludeStart && framePosition < nextLineTime
-                if (showInterlude) {
-                    val transition = rememberInfiniteTransition(label = "appleV3Interlude")
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 2.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        repeat(3) { dotIndex ->
-                            val dotAlpha by transition.animateFloat(
-                                initialValue = 0.18f,
-                                targetValue = 1f,
-                                animationSpec = infiniteRepeatable(
-                                    animation = tween(durationMillis = 520, delayMillis = dotIndex * 170),
-                                    repeatMode = RepeatMode.Reverse,
-                                ),
-                                label = "appleV3InterludeDotAlpha$dotIndex",
-                            )
-                            val dotLift by transition.animateFloat(
-                                initialValue = 0f,
-                                targetValue = -5f,
-                                animationSpec = infiniteRepeatable(
-                                    animation = tween(durationMillis = 520, delayMillis = dotIndex * 170),
-                                    repeatMode = RepeatMode.Reverse,
-                                ),
-                                label = "appleV3InterludeDotLift$dotIndex",
-                            )
-                            Text(
-                                text = "•",
-                                color = textColor.copy(alpha = dotAlpha),
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .padding(horizontal = 4.dp)
-                                    .graphicsLayer { translationY = dotLift },
-                            )
-                        }
-                    }
-                }
             }
         }
     }
