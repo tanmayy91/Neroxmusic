@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.convx.music.lyrics.LyricsEntry
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -52,6 +53,12 @@ private val SeedheCyan = Color(0xFF1E9BA7)
 private val SeedheBlack = Color(0xFF0A0A0C)
 
 private data class InkParticle(val x: Float, val y: Float, val radius: Float, val alpha: Float)
+private enum class SeedheVisualMode {
+    MONOGRAPH,
+    SIGNAL,
+    GRID,
+    ORBIT,
+}
 
 /**
  * The artist-specific canvas is selected by [CinematicLyrics]. Keeping this composable
@@ -129,6 +136,8 @@ fun SeedheMautLyricsCanvas(
     val lineScale = 0.84f + (currentIndex.coerceAtLeast(0) % 4) * 0.06f
     val shortLine = (activeLine?.text?.trim()?.split(Regex("\\s+"))?.size ?: 0) <= 3
     val textOffset = (sin(drift * (PI * 2.0)) * 10f).toFloat()
+    val visualModes = SeedheVisualMode.values()
+    val visualMode = visualModes[currentIndex.coerceAtLeast(0) % visualModes.size]
 
     Box(modifier = modifier.fillMaxSize()) {
         Canvas(Modifier.fillMaxSize()) {
@@ -200,6 +209,74 @@ fun SeedheMautLyricsCanvas(
                         )
                     }
                 }
+                when (visualMode) {
+                    SeedheVisualMode.MONOGRAPH -> Unit
+                    SeedheVisualMode.SIGNAL -> {
+                        repeat(18) { index ->
+                            val x = size.width * (index + 1) / 19f
+                            val height = size.height * (0.03f + 0.04f * abs(sin(index * 1.7f + drift * PI * 2.0)))
+                            drawLine(
+                                color = SeedheCyan.copy(alpha = 0.16f + index % 3 * 0.04f),
+                                start = androidx.compose.ui.geometry.Offset(x, center.y - height),
+                                end = androidx.compose.ui.geometry.Offset(x, center.y + height),
+                                strokeWidth = if (index % 4 == 0) 3f else 1f,
+                            )
+                        }
+                        drawCircle(
+                            color = SeedheCrimson.copy(alpha = 0.18f),
+                            radius = size.minDimension * (0.12f + ambientPulse * 0.035f),
+                            center = center,
+                            style = Stroke(width = 1.5f),
+                        )
+                    }
+                    SeedheVisualMode.GRID -> {
+                        val spacing = size.minDimension / 10f
+                        for (index in 1..9) {
+                            drawLine(
+                                color = SeedheCyan.copy(alpha = 0.10f),
+                                start = androidx.compose.ui.geometry.Offset(index * spacing, 0f),
+                                end = androidx.compose.ui.geometry.Offset(index * spacing, size.height),
+                                strokeWidth = if (index == 5) 1.8f else 0.7f,
+                            )
+                            drawLine(
+                                color = SeedheCyan.copy(alpha = 0.10f),
+                                start = androidx.compose.ui.geometry.Offset(0f, index * spacing),
+                                end = androidx.compose.ui.geometry.Offset(size.width, index * spacing),
+                                strokeWidth = if (index == 5) 1.8f else 0.7f,
+                            )
+                        }
+                        drawRect(
+                            color = SeedheCrimson.copy(alpha = 0.30f),
+                            topLeft = androidx.compose.ui.geometry.Offset(size.width * 0.12f, size.height * 0.18f),
+                            size = androidx.compose.ui.geometry.Size(size.width * 0.76f, size.height * 0.64f),
+                            style = Stroke(width = 1.5f),
+                        )
+                    }
+                    SeedheVisualMode.ORBIT -> {
+                        rotate(drift * 360f, center) {
+                            repeat(3) { ring ->
+                                val diameter = size.minDimension * (0.36f + ring * 0.20f)
+                                drawArc(
+                                    color = if (ring % 2 == 0) SeedheCyan else SeedheCrimson,
+                                    startAngle = 18f + ring * 75f,
+                                    sweepAngle = 118f,
+                                    useCenter = false,
+                                    topLeft = androidx.compose.ui.geometry.Offset(
+                                        center.x - diameter / 2f,
+                                        center.y - diameter / 2f,
+                                    ),
+                                    size = androidx.compose.ui.geometry.Size(diameter, diameter),
+                                    style = Stroke(width = 1.5f),
+                                )
+                            }
+                        }
+                        drawCircle(
+                            color = SeedheInk.copy(alpha = 0.14f),
+                            radius = size.minDimension * 0.08f * ambientPulse,
+                            center = center,
+                        )
+                    }
+                }
             }
 
             val inkColor = SeedheCrimson.copy(alpha = 0.16f)
@@ -237,6 +314,13 @@ fun SeedheMautLyricsCanvas(
         }
 
         if (!instrumental) {
+            ModeStamp(
+                mode = visualMode,
+                progress = lineProgress,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 24.dp, top = 26.dp),
+            )
             Column(
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -268,6 +352,30 @@ fun SeedheMautLyricsCanvas(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ModeStamp(
+    mode: SeedheVisualMode,
+    progress: Float,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = "SEEDHE / MAUT",
+            color = SeedheInk.copy(alpha = 0.62f),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 2.sp,
+        )
+        Text(
+            text = "${mode.name}  //  ${(progress * 100).toInt().toString().padStart(2, '0')}",
+            color = SeedheCyan.copy(alpha = 0.72f),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.2.sp,
+        )
     }
 }
 
