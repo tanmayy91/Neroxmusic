@@ -104,6 +104,20 @@ fun CinematicLyrics(
         }
     }
     val activeLine = lines.getOrNull(currentIndex)
+    val isSeedheMautTrack = metadata?.artists?.any { artist ->
+        artist.name.trim().equals("Seedhe Maut", ignoreCase = true) ||
+            artist.name.trim().equals("Encore ABJ", ignoreCase = true) ||
+            artist.name.trim().equals("Calm", ignoreCase = true)
+    } == true
+    if (isSeedheMautTrack && lines.isNotEmpty()) {
+        SeedheMautLyricsCanvas(
+            lines = lines,
+            currentIndex = currentIndex,
+            positionMs = position + (currentSong?.song?.lyricsOffset ?: 0L),
+            modifier = modifier,
+        )
+        return
+    }
     val artwork = metadata?.thumbnailUrl
     val animatedZoom by animateFloatAsState(
         targetValue = if (currentIndex >= 0) 1.08f else 1f,
