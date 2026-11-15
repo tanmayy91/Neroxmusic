@@ -248,7 +248,8 @@ private fun ScrollFramesContent(
     fadeColor: Color,
     modifier: Modifier,
 ) {
-    val frames = remember { JacketFrames(LocalContext.current) }
+    val context = LocalContext.current
+    val frames = remember(context) { JacketFrames(context) }
 
     DisposableEffect(frames) { onDispose { frames.close() } }
 
