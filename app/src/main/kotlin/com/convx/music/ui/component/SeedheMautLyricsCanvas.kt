@@ -10,6 +10,9 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +21,9 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -377,6 +383,132 @@ private fun ModeStamp(
             letterSpacing = 1.2.sp,
         )
     }
+}
+
+@Composable
+fun SeedheMautProfileSneakPeek(
+    scrollProgress: () -> Float,
+    modifier: Modifier = Modifier,
+) {
+    val transition = rememberInfiniteTransition(label = "seedheMautProfilePeek")
+    val scanPhase by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(3_600)),
+        label = "seedheMautProfileScan",
+    )
+    Box(
+        modifier = modifier.graphicsLayer {
+            val progress = scrollProgress().coerceIn(0f, 1f)
+            alpha = (1f - progress * 0.72f).coerceIn(0.18f, 1f)
+            translationY = -progress * size.height * 0.08f
+        },
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            val progress = scrollProgress().coerceIn(0f, 1f)
+            val scanY = size.height * (0.25f + scanPhase * 0.55f)
+            drawLine(
+                color = SeedheCyan.copy(alpha = 0.28f * (1f - progress * 0.4f)),
+                start = androidx.compose.ui.geometry.Offset(size.width * 0.08f, scanY),
+                end = androidx.compose.ui.geometry.Offset(size.width * 0.92f, scanY),
+                strokeWidth = 1.5f,
+            )
+            drawCircle(
+                color = SeedheCrimson.copy(alpha = 0.36f),
+                radius = size.minDimension * (0.12f + progress * 0.05f),
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.82f, size.height * 0.22f),
+                style = Stroke(width = 1.5f),
+            )
+            drawLine(
+                color = SeedheInk.copy(alpha = 0.26f),
+                start = androidx.compose.ui.geometry.Offset(size.width * 0.08f, size.height * 0.86f),
+                end = androidx.compose.ui.geometry.Offset(size.width * 0.32f, size.height * 0.86f),
+                strokeWidth = 1f,
+            )
+        }
+        val peekFrames = listOf(
+            "THE DUO / UNFILTERED",
+            "DELHI AFTER DARK",
+            "NO SKIPS / ALL CAPS",
+        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 24.dp, end = 22.dp)
+                .width(190.dp),
+            horizontalAlignment = Alignment.End,
+        ) {
+            Text(
+                text = "SCROLL THE ARCHIVE",
+                color = SeedheInk.copy(alpha = 0.66f),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.4.sp,
+            )
+            peekFrames.forEachIndexed { index, label ->
+                val framePosition = scrollProgress().coerceIn(0f, 0.999f) * peekFrames.size
+                val frameDistance = (framePosition - index).coerceIn(-1f, 1f)
+                Text(
+                    text = label,
+                    color = if (abs(frameDistance) < 0.5f) SeedheCyan else SeedheInk.copy(alpha = 0.74f),
+                    fontSize = if (abs(frameDistance) < 0.5f) 15.sp else 11.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = if (abs(frameDistance) < 0.5f) (-0.4).sp else 0.7.sp,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier
+                        .padding(top = 6.dp)
+                        .graphicsLayer {
+                            alpha = (1f - abs(frameDistance) * 0.62f).coerceIn(0.18f, 1f)
+                            translationX = frameDistance * 34f
+                            rotationX = frameDistance * 18f
+                            scaleX = 1f - abs(frameDistance) * 0.12f
+                            scaleY = 1f - abs(frameDistance) * 0.12f
+                        },
+                )
+            }
+        }
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 22.dp, bottom = 22.dp)
+                .graphicsLayer {
+                    val progress = scrollProgress().coerceIn(0f, 1f)
+                    alpha = (1f - progress * 1.5f).coerceIn(0f, 1f)
+                    translationX = -progress * 52f
+                },
+        ) {
+            Text(
+                text = "SNEAK PEEK / 01",
+                color = SeedheCyan.copy(alpha = 0.88f),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.8.sp,
+            )
+            Spacer(Modifier.padding(vertical = 3.dp))
+            Row {
+                ProfilePeekTag("DELHI / 2017")
+                Spacer(Modifier.width(6.dp))
+                ProfilePeekTag("DUO MODE")
+                Spacer(Modifier.width(6.dp))
+                ProfilePeekTag("AFTER DARK")
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfilePeekTag(label: String) {
+    Text(
+        text = label,
+        color = SeedheInk.copy(alpha = 0.9f),
+        fontSize = 9.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.8.sp,
+        modifier = Modifier
+            .background(SeedheBlack.copy(alpha = 0.64f), RoundedCornerShape(4.dp))
+            .border(1.dp, SeedheInk.copy(alpha = 0.24f), RoundedCornerShape(4.dp))
+            .padding(horizontal = 7.dp, vertical = 5.dp),
+    )
 }
 
 @Composable

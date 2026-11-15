@@ -171,6 +171,7 @@ import com.convx.music.ui.component.backdrop.backdrops.layerBackdrop
 import com.convx.music.ui.component.backdrop.backdrops.rememberBackdropFreeze
 import com.convx.music.ui.component.backdrop.backdrops.rememberLayerBackdrop
 import com.convx.music.ui.component.NavigationTitle
+import com.convx.music.ui.component.SeedheMautProfileSneakPeek
 import com.convx.music.ui.component.SongListItem
 import com.convx.music.ui.component.YouTubeGridItem
 import com.convx.music.ui.component.YouTubeListItem
@@ -503,6 +504,7 @@ fun ArtistScreen(
                     val thumbnail = artistPage?.artist?.thumbnail ?: libraryArtist?.artist?.thumbnailUrl
                     val artistName = artistPage?.artist?.title ?: libraryArtist?.artist?.name
                     val displayArtistName = artistName?.titlecaseWords() ?: "Unknown"
+                    val isSeedheMautArtist = displayArtistName.equals("Seedhe Maut", ignoreCase = true)
                     LaunchedEffect(displayArtistName) {
                         viewModel.fetchArtistSignature(displayArtistName)
                     }
@@ -609,6 +611,12 @@ fun ArtistScreen(
                                         ArtistVideo(player = motionPlayer, modifier = Modifier.fillMaxSize(),
                                             onFrame = { heroVideoFrame.intValue++ }, onClick = {})
                                     }
+                                    if (isSeedheMautArtist) {
+                                        SeedheMautProfileSneakPeek(
+                                            scrollProgress = { heroScrollBlur },
+                                            modifier = Modifier.fillMaxSize(),
+                                        )
+                                    }
                                 },
                             )
                             Column(
@@ -668,13 +676,19 @@ fun ArtistScreen(
                             pageColor = tint,
                             heroScale = { heroZoom.scale },
                             loading = appleLoading && fallbackArtworkUrl.isNullOrBlank(),
-                            scrollBlur = { 0f },
+                            scrollBlur = { heroScrollBlur },
                             videoFrame = { heroVideoFrame.intValue },
                             modifier = Modifier.width(heroSide).offset { IntOffset(x = 0, y = headerOffset) },
                             overlay = {
                                 if (motionPlayer != null) {
                                     ArtistVideo(player = motionPlayer, modifier = Modifier.fillMaxSize(),
                                         onFrame = { heroVideoFrame.intValue++ }, onClick = {})
+                                }
+                                if (isSeedheMautArtist) {
+                                    SeedheMautProfileSneakPeek(
+                                        scrollProgress = { heroScrollBlur },
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
                                 }
                             },
                         )
