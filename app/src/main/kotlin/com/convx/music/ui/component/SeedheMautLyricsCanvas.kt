@@ -220,7 +220,8 @@ fun SeedheMautLyricsCanvas(
                     SeedheVisualMode.SIGNAL -> {
                         repeat(18) { index ->
                             val x = size.width * (index + 1) / 19f
-                            val height = size.height * (0.03f + 0.04f * abs(sin(index * 1.7f + drift * PI * 2.0)))
+                            val height = size.height *
+    (0.03f + 0.04f * abs(sin(index * 1.7f + drift * PI * 2.0)).toFloat())
                             drawLine(
                                 color = SeedheCyan.copy(alpha = 0.16f + index % 3 * 0.04f),
                                 start = androidx.compose.ui.geometry.Offset(x, center.y - height),
