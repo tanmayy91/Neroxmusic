@@ -125,7 +125,7 @@ fun SeedheMautLyricsCanvas(
     val wireframePath = remember { Path() }
     val inkPath = remember { Path() }
     val flashAlpha by animateFloatAsState(flash.value, tween(80), label = "seedheMautFlash")
-    val lineAngle = ((currentIndex.coerceAtLeast(0) * 17) % 28 - 14) * (PI / 180f)
+    val lineAngle = (((currentIndex.coerceAtLeast(0) * 17) % 28 - 14) * (PI / 180.0)).toFloat()
     val lineScale = 0.84f + (currentIndex.coerceAtLeast(0) % 4) * 0.06f
     val shortLine = (activeLine?.text?.trim()?.split(Regex("\\s+"))?.size ?: 0) <= 3
     val textOffset = (sin(drift * (PI * 2.0)) * 10f).toFloat()
