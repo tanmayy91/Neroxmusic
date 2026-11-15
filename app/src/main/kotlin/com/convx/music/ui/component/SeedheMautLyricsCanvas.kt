@@ -2,6 +2,7 @@ package com.convx.music.ui.component
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -25,11 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -123,18 +124,6 @@ fun SeedheMautLyricsCanvas(
     }
     val wireframePath = remember { Path() }
     val inkPath = remember { Path() }
-    val wirePaint = remember {
-        Paint().apply {
-            style = PaintingStyle.Stroke
-            strokeCap = StrokeCap.Square
-        }
-    }
-    val inkPaint = remember {
-        Paint().apply {
-            style = PaintingStyle.Stroke
-            strokeCap = StrokeCap.Round
-        }
-    }
     val flashAlpha by animateFloatAsState(flash.value, tween(80), label = "seedheMautFlash")
     val lineAngle = ((currentIndex.coerceAtLeast(0) * 17) % 28 - 14) * (PI / 180f)
     val lineScale = 0.84f + (currentIndex.coerceAtLeast(0) % 4) * 0.06f
@@ -176,26 +165,31 @@ fun SeedheMautLyricsCanvas(
             val wireScale = if (instrumental) ambientPulse * 1.34f else lineScale
             rotate(lineAngle + sin(drift * (PI * 2.0)).toFloat() * 0.05f, center) {
                 scale(wireScale, center) {
-                    wirePaint.color = SeedheCyan.copy(alpha = if (instrumental) 0.34f else 0.18f)
-                    wirePaint.strokeWidth = 1.2f
+                    val wireColor = SeedheCyan.copy(alpha = if (instrumental) 0.34f else 0.18f)
                     wireframePath.reset()
                     wireframePath.moveTo(size.width * 0.18f, size.height * 0.30f)
                     wireframePath.lineTo(size.width * 0.82f, size.height * 0.30f)
                     wireframePath.lineTo(size.width * 0.68f, size.height * 0.70f)
                     wireframePath.lineTo(size.width * 0.32f, size.height * 0.70f)
                     wireframePath.close()
-                    drawPath(wireframePath, wirePaint)
-                    drawLine(
-                        androidx.compose.ui.geometry.Offset(size.width * 0.18f, size.height * 0.30f),
-                        androidx.compose.ui.geometry.Offset(size.width * 0.68f, size.height * 0.70f),
-                        wirePaint.color,
-                        1.2f,
+                    drawPath(
+                        path = wireframePath,
+                        color = wireColor,
+                        style = Stroke(width = 1.2f, cap = StrokeCap.Square),
                     )
                     drawLine(
-                        androidx.compose.ui.geometry.Offset(size.width * 0.82f, size.height * 0.30f),
-                        androidx.compose.ui.geometry.Offset(size.width * 0.32f, size.height * 0.70f),
-                        wirePaint.color,
-                        1.2f,
+                        color = wireColor,
+                        start = androidx.compose.ui.geometry.Offset(size.width * 0.18f, size.height * 0.30f),
+                        end = androidx.compose.ui.geometry.Offset(size.width * 0.68f, size.height * 0.70f),
+                        strokeWidth = 1.2f,
+                        cap = StrokeCap.Square,
+                    )
+                    drawLine(
+                        color = wireColor,
+                        start = androidx.compose.ui.geometry.Offset(size.width * 0.82f, size.height * 0.30f),
+                        end = androidx.compose.ui.geometry.Offset(size.width * 0.32f, size.height * 0.70f),
+                        strokeWidth = 1.2f,
+                        cap = StrokeCap.Square,
                     )
                     if (instrumental) {
                         drawCircle(
@@ -208,8 +202,7 @@ fun SeedheMautLyricsCanvas(
                 }
             }
 
-            inkPaint.color = SeedheCrimson.copy(alpha = 0.16f)
-            inkPaint.strokeWidth = 1f
+            val inkColor = SeedheCrimson.copy(alpha = 0.16f)
             repeat(8) { index ->
                 val y = size.height * (0.12f + index * 0.105f)
                 inkPath.reset()
@@ -222,7 +215,11 @@ fun SeedheMautLyricsCanvas(
                     size.width * 0.92f,
                     y - 4f,
                 )
-                drawPath(inkPath, inkPaint)
+                drawPath(
+                    path = inkPath,
+                    color = inkColor,
+                    style = Stroke(width = 1f, cap = StrokeCap.Round),
+                )
             }
         }
 

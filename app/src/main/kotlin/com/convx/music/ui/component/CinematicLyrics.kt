@@ -97,7 +97,7 @@ fun CinematicLyrics(
     val currentIndex = remember(lines, position, lyrics) {
         if (lines.isEmpty()) -1
         else if (lyrics?.startsWith("[") == true) {
-            primaryLyricLineIndex(lines, position + (currentSong?.song?.lyricsOffset ?: 0))
+            primaryLyricLineIndex(lines, position + (currentSong?.song?.lyricsOffset?.toLong() ?: 0L))
                 .coerceIn(0, lines.lastIndex)
         } else {
             lines.indexOfLast { it.time <= position }.coerceIn(0, lines.lastIndex)
@@ -113,7 +113,7 @@ fun CinematicLyrics(
         SeedheMautLyricsCanvas(
             lines = lines,
             currentIndex = currentIndex,
-            positionMs = position + (currentSong?.song?.lyricsOffset ?: 0L),
+            positionMs = position + (currentSong?.song?.lyricsOffset?.toLong() ?: 0L),
             modifier = modifier,
         )
         return
