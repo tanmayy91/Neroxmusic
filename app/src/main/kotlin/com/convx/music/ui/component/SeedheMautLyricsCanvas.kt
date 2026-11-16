@@ -1,29 +1,28 @@
 package com.convx.music.ui.component
 
+import android.graphics.Canvas as NativeCanvas
+import android.graphics.Paint as NativePaint
+import android.graphics.RectF
+import android.graphics.Typeface
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,46 +30,655 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.convx.music.lyrics.LyricsEntry
-import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.hypot
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sin
+import kotlinx.coroutines.launch
 
 private val SeedheInk = Color(0xFFF2EEE9)
 private val SeedheCrimson = Color(0xFF8F1727)
 private val SeedheCyan = Color(0xFF1E9BA7)
 private val SeedheBlack = Color(0xFF0A0A0C)
+private val SeedheRed = Color(0xFFE3121D)
+private val SeedhePaper = Color(0xFFECE5D3)
+private val SeedheTape = Color(0xFFFFD60A)
+private const val SeedheTau = 6.2831855f
 
-private data class InkParticle(val x: Float, val y: Float, val radius: Float, val alpha: Float)
-private enum class SeedheVisualMode {
-    MONOGRAPH,
-    SIGNAL,
-    GRID,
-    ORBIT,
+private val SeedheFace: Typeface by lazy { Typeface.create("sans-serif-condensed", Typeface.BOLD) }
+
+private enum class SeedheStyle { SLAM, BLOCKS, STACK, SCRIBBLE, OUTLINE }
+
+private class SeedheTheme(
+    val bg: Color,
+    val fg: Color,
+    val accent: Color,
+    val onAccent: Color,
+    val glow: Color,
+    val dots: Color,
+    val vignette: Color,
+    val dark: Boolean,
+)
+
+private val SeedheThemeDark = SeedheTheme(
+    SeedheBlack, SeedheInk, SeedheRed, SeedheInk,
+    SeedheRed.copy(alpha = 0.40f), SeedheRed.copy(alpha = 0.28f), Color.Black.copy(alpha = 0.60f), true,
+)
+private val SeedheThemeRed = SeedheTheme(
+    SeedheRed, SeedheInk, SeedheBlack, SeedheInk,
+    Color.Black.copy(alpha = 0.35f), Color.Black.copy(alpha = 0.22f), Color.Black.copy(alpha = 0.50f), false,
+)
+private val SeedheThemePaper = SeedheTheme(
+    SeedhePaper, SeedheBlack, SeedheRed, SeedheInk,
+    SeedheRed.copy(alpha = 0.16f), Color.Black.copy(alpha = 0.14f), Color(0xFF3A2E1C).copy(alpha = 0.30f), false,
+)
+
+private fun seedheThemeFor(index: Int): SeedheTheme = when (index % 10) {
+    2, 7 -> SeedheThemeRed
+    5 -> SeedheThemePaper
+    else -> SeedheThemeDark
+}
+
+private val SeedheStyleOrder = arrayOf(
+    SeedheStyle.BLOCKS, SeedheStyle.STACK, SeedheStyle.SCRIBBLE, SeedheStyle.OUTLINE, SeedheStyle.SLAM,
+)
+
+private fun seedheStyleFor(index: Int, wordCount: Int): SeedheStyle {
+    if (wordCount <= 1) return SeedheStyle.SLAM
+    if (wordCount <= 3) return if (index % 2 == 0) SeedheStyle.SLAM else SeedheStyle.STACK
+    var s = SeedheStyleOrder[(index * 2 + index / 5) % SeedheStyleOrder.size]
+    if (s == SeedheStyle.STACK && wordCount > 6) s = SeedheStyle.BLOCKS
+    if (s == SeedheStyle.SLAM && wordCount > 5) s = SeedheStyle.SCRIBBLE
+    return s
+}
+
+private fun seedheHash(seed: Int): Float {
+    var x = seed * 0x9E3779B1.toInt() + 1013904223
+    x = x xor (x ushr 15)
+    x *= 0x2C1B3C6D
+    x = x xor (x ushr 12)
+    x *= 0x297A2D39
+    x = x xor (x ushr 15)
+    return (x and 0xFFFFFF) / 16777215f
+}
+
+private class SeedhePaints {
+    val text = NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
+        typeface = SeedheFace
+        textAlign = NativePaint.Align.CENTER
+        letterSpacing = -0.01f
+    }
+    val small = NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
+        typeface = SeedheFace
+        textAlign = NativePaint.Align.CENTER
+        letterSpacing = 0.06f
+    }
+    val band = NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
+        typeface = SeedheFace
+        textAlign = NativePaint.Align.LEFT
+        letterSpacing = 0.02f
+    }
+    val shape = NativePaint(NativePaint.ANTI_ALIAS_FLAG)
+    val rect = RectF()
+}
+
+private class SeedheWord(val text: String, val startMs: Long, val endMs: Long) {
+    var cx = 0f
+    var base = 0f
+    var size = 1f
+    var width = 0f
+    var rot = 0f
+}
+
+private fun seedheWords(line: LyricsEntry, next: LyricsEntry?): List<SeedheWord> =
+    lineWords(line, next)
+        .filter { it.text.isNotBlank() }
+        .map { SeedheWord(it.text.trim().uppercase(), it.startMs, it.endMs) }
+
+private class SeedheSpec(
+    val padX: Float,
+    val padY: Float,
+    val gapX: Float,
+    val gapY: Float,
+    val startSize: Float,
+)
+
+private class SeedheArrangeCache {
+    var words: List<SeedheWord>? = null
+    var style: SeedheStyle? = null
+    var w = 0f
+    var h = 0f
+    var left = 0f
+    var top = 0f
+    var right = 0f
+    var bottom = 0f
+    var padXf = 0f
+
+    fun ensure(
+        words: List<SeedheWord>,
+        style: SeedheStyle,
+        w: Float,
+        h: Float,
+        paint: NativePaint,
+        seed: Int,
+    ) {
+        if (this.words === words && this.style == style && this.w == w && this.h == h) return
+        seedheArrange(this, words, style, w, h, paint, seed)
+    }
+}
+
+private const val SeedheCap = 0.71f
+
+private fun seedheArrange(
+    cache: SeedheArrangeCache,
+    words: List<SeedheWord>,
+    style: SeedheStyle,
+    w: Float,
+    h: Float,
+    paint: NativePaint,
+    seed: Int,
+) {
+    cache.words = words
+    cache.style = style
+    cache.w = w
+    cache.h = h
+    val n = words.size
+    if (n == 0) return
+    paint.textSkewX = 0f
+    paint.style = NativePaint.Style.FILL
+    paint.textSize = 100f
+    val w100 = FloatArray(n) { paint.measureText(words[it].text).coerceAtLeast(1f) }
+    val cy = h * 0.47f
+
+    if (style == SeedheStyle.STACK) {
+        val maxW = w * 0.88f
+        val sizeCap = h * 0.17f
+        val sizes = FloatArray(n) { min(maxW * 100f / w100[it], sizeCap) }
+        var capSum = 0f
+        for (i in 0 until n) capSum += sizes[i] * SeedheCap
+        val gap1 = 0.16f * (capSum / n)
+        val total1 = capSum + (n - 1) * gap1
+        val f = min(1f, (h * 0.5f) / total1)
+        var y = cy - total1 * f / 2f
+        var widest = 0f
+        for (i in 0 until n) {
+            val s = sizes[i] * f
+            val wd = words[i]
+            wd.size = s
+            wd.width = w100[i] * s / 100f
+            wd.cx = w / 2f
+            wd.base = y + s * SeedheCap
+            wd.rot = 0f
+            widest = max(widest, wd.width)
+            y = wd.base + gap1 * f
+        }
+        cache.left = w / 2f - widest / 2f
+        cache.right = w / 2f + widest / 2f
+        cache.top = cy - total1 * f / 2f
+        cache.bottom = cy + total1 * f / 2f
+        cache.padXf = 0f
+        return
+    }
+
+    val spec = when (style) {
+        SeedheStyle.SLAM -> SeedheSpec(0f, 0f, 0.20f, 0.18f, h * 0.24f)
+        SeedheStyle.OUTLINE -> SeedheSpec(0f, 0f, 0.22f, 0.26f, h * 0.15f)
+        SeedheStyle.SCRIBBLE -> SeedheSpec(0.02f, 0f, 0.24f, 0.34f, h * 0.12f)
+        else -> SeedheSpec(0.24f, 0.20f, 0.16f, 0.18f, h * 0.11f)
+    }
+    val maxW = w * 0.90f
+    val maxH = h * 0.46f
+    var widestEm = 0f
+    for (i in 0 until n) widestEm = max(widestEm, w100[i] / 100f + 2f * spec.padX)
+    var s = min(spec.startSize, maxW / widestEm)
+    val minS = h * 0.04f
+    val rowEnd = IntArray(n)
+    var rows = 0
+    while (true) {
+        rows = 0
+        var cursor = 0f
+        var count = 0
+        for (i in 0 until n) {
+            val eff = s * (w100[i] / 100f + 2f * spec.padX)
+            val gap = if (count == 0) 0f else spec.gapX * s
+            if (count > 0 && cursor + gap + eff > maxW) {
+                rowEnd[rows++] = i
+                cursor = eff
+                count = 1
+            } else {
+                cursor += gap + eff
+                count++
+            }
+        }
+        rowEnd[rows++] = n
+        val rowH = s * (SeedheCap + 2f * spec.padY)
+        val total = rows * rowH + (rows - 1) * spec.gapY * s
+        if (total <= maxH || s <= minS) break
+        s *= 0.92f
+    }
+    val rowH = s * (SeedheCap + 2f * spec.padY)
+    val total = rows * rowH + (rows - 1) * spec.gapY * s
+    var rowTop = cy - total / 2f
+    var idx = 0
+    var minL = w
+    var maxR = 0f
+    for (r in 0 until rows) {
+        val end = rowEnd[r]
+        var rowW = 0f
+        for (i in idx until end) rowW += s * (w100[i] / 100f + 2f * spec.padX)
+        rowW += (end - idx - 1) * spec.gapX * s
+        var x = (w - rowW) / 2f
+        for (i in idx until end) {
+            val eff = s * (w100[i] / 100f + 2f * spec.padX)
+            val wd = words[i]
+            wd.cx = x + eff / 2f
+            wd.base = rowTop + s * (spec.padY + SeedheCap)
+            wd.size = s
+            wd.width = w100[i] * s / 100f
+            wd.rot = if (style == SeedheStyle.BLOCKS) seedheHash(seed * 31 + i) * 6f - 3f else 0f
+            x += eff + spec.gapX * s
+        }
+        minL = min(minL, (w - rowW) / 2f)
+        maxR = max(maxR, (w + rowW) / 2f)
+        rowTop += rowH + spec.gapY * s
+        idx = end
+    }
+    cache.left = minL
+    cache.right = maxR
+    cache.top = cy - total / 2f
+    cache.bottom = cy + total / 2f
+    cache.padXf = spec.padX
+}
+
+private fun seedheDrawWord(
+    nc: NativeCanvas,
+    paints: SeedhePaints,
+    word: SeedheWord,
+    index: Int,
+    style: SeedheStyle,
+    theme: SeedheTheme,
+    positionMs: Long,
+    padXf: Float,
+    ghost: Boolean,
+    ghostColor: Int,
+    ghostDx: Float,
+) {
+    val since = positionMs - word.startMs
+    val started = since >= 0L
+    if (ghost && !started) return
+    val span = (word.endMs - word.startMs).coerceAtLeast(1L)
+    val progress = (since.toFloat() / span).coerceIn(0f, 1f)
+    val active = started && progress < 1f
+    val popT = (since / 260f).coerceIn(0f, 1f)
+    val pop = if (started) 1f + 0.34f * (1f - popT) * (1f - popT) else 1f
+    val jolt = if (started) sin(positionMs / 38f) * 2.4f * (1f - popT) else 0f
+    val s = word.size
+    val capH = s * SeedheCap
+    val half = word.width / 2f
+    val p = paints.text
+    p.textSize = s
+    p.textSkewX = when (style) {
+        SeedheStyle.SLAM -> -0.18f
+        SeedheStyle.OUTLINE -> -0.22f
+        SeedheStyle.SCRIBBLE -> -0.08f
+        else -> 0f
+    }
+    nc.save()
+    nc.translate(word.cx + ghostDx, word.base - capH / 2f)
+    nc.rotate(word.rot + jolt)
+    nc.scale(pop, pop)
+    val ty = capH / 2f
+    val wipeRight = -half + word.width * progress + (if (progress >= 1f) s * 0.3f else 0f)
+
+    if (ghost) {
+        p.style = NativePaint.Style.FILL
+        p.color = ghostColor
+        nc.drawText(word.text, 0f, ty, p)
+    } else if (style == SeedheStyle.BLOCKS) {
+        val padX = padXf * s
+        val padY = 0.2f * s
+        val boxW = word.width + 2f * padX
+        val boxH = capH + 2f * padY
+        val radius = s * 0.09f
+        val sp = paints.shape
+        paints.rect.set(-boxW / 2f, -boxH / 2f, boxW / 2f, boxH / 2f)
+        if (started) {
+            sp.style = NativePaint.Style.FILL
+            sp.color = (if (active) theme.accent else theme.fg).toArgb()
+            nc.drawRoundRect(paints.rect, radius, radius, sp)
+            p.style = NativePaint.Style.FILL
+            p.color = (if (active) theme.onAccent else theme.bg).toArgb()
+        } else {
+            sp.style = NativePaint.Style.STROKE
+            sp.strokeWidth = max(1f, s * 0.03f)
+            sp.color = theme.fg.copy(alpha = 0.30f).toArgb()
+            nc.drawRoundRect(paints.rect, radius, radius, sp)
+            p.style = NativePaint.Style.FILL
+            p.color = theme.fg.copy(alpha = 0.38f).toArgb()
+        }
+        nc.drawText(word.text, 0f, ty, p)
+    } else if (style == SeedheStyle.OUTLINE) {
+        p.style = NativePaint.Style.STROKE
+        p.strokeWidth = s * 0.035f
+        p.strokeJoin = NativePaint.Join.ROUND
+        p.color = theme.fg.copy(alpha = 0.60f).toArgb()
+        nc.drawText(word.text, 0f, ty, p)
+        if (started) {
+            p.style = NativePaint.Style.FILL
+            p.color = (if (active) theme.accent else theme.fg).toArgb()
+            nc.save()
+            nc.clipRect(-half - s * 0.2f, -capH / 2f - s * 0.3f, wipeRight, ty + s * 0.4f)
+            nc.drawText(word.text, 0f, ty, p)
+            nc.restore()
+        }
+    } else {
+        p.style = NativePaint.Style.FILL
+        if (started && style == SeedheStyle.SLAM) {
+            val off = s * (0.03f + 0.05f * (1f - popT))
+            p.color = theme.accent.copy(alpha = 0.95f).toArgb()
+            nc.drawText(word.text, off, ty + off, p)
+        }
+        p.color = theme.fg.copy(alpha = if (theme.dark) 0.20f else 0.18f).toArgb()
+        nc.drawText(word.text, 0f, ty, p)
+        if (started) {
+            val color = when {
+                style == SeedheStyle.STACK -> if (index % 2 == 0) theme.fg else theme.accent
+                style == SeedheStyle.SCRIBBLE && active -> theme.accent
+                else -> theme.fg
+            }
+            p.color = color.toArgb()
+            nc.save()
+            nc.clipRect(-half - s * 0.2f, -capH / 2f - s * 0.3f, wipeRight, ty + s * 0.4f)
+            nc.drawText(word.text, 0f, ty, p)
+            nc.restore()
+        }
+    }
+    nc.restore()
+}
+
+/** Hand-drawn marker loop that scribbles itself around the key word. */
+private fun DrawScope.seedheScribble(
+    word: SeedheWord,
+    positionMs: Long,
+    theme: SeedheTheme,
+    path: Path,
+    seed: Int,
+) {
+    val since = positionMs - word.startMs
+    if (since < 0L) return
+    val t = (since / 420f).coerceIn(0f, 1f)
+    val steps = 70
+    val visible = (t * steps).toInt()
+    if (visible < 2) return
+    val s = word.size
+    val capH = s * SeedheCap
+    val cx = word.cx
+    val cy = word.base - capH / 2f
+    val rx = word.width / 2f + s * 0.16f
+    val ry = capH / 2f + s * 0.20f
+    val phase = seedheHash(seed) * 6f
+    path.reset()
+    for (i in 0..visible) {
+        val f = i / steps.toFloat()
+        val a = -2.4f + f * SeedheTau * 1.45f
+        val k = 1f + 0.07f * sin(i * 0.55f + phase) + 0.09f * f
+        val x = cx + rx * cos(a) * k
+        val y = cy + ry * sin(a) * k
+        if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+    }
+    drawPath(
+        path = path,
+        color = theme.accent,
+        style = Stroke(width = max(3f, s * 0.07f), cap = StrokeCap.Round, join = StrokeJoin.Round),
+    )
+}
+
+private fun DrawScope.seedheBackdrop(theme: SeedheTheme, clock: Float, impact: Float, u: Float) {
+    val w = size.width
+    val h = size.height
+    drawRect(theme.bg)
+
+    // slow-moving colour glow that flares on every new line
+    val glowCenter = Offset(
+        w * (0.5f + 0.38f * cos(clock * SeedheTau)),
+        h * (0.30f + 0.12f * sin(clock * SeedheTau * 2f)),
+    )
+    val glowRadius = size.maxDimension * 0.62f
+    val glow = theme.glow.copy(alpha = (theme.glow.alpha + 0.30f * impact).coerceAtMost(1f))
+    drawCircle(
+        brush = Brush.radialGradient(
+            colors = listOf(glow, Color.Transparent),
+            center = glowCenter,
+            radius = glowRadius,
+        ),
+        radius = glowRadius,
+        center = glowCenter,
+    )
+
+    // comic halftone dots fading out from the bottom-left corner
+    val spacing = 17f * u
+    val cols = (w / spacing).toInt() + 2
+    val rows = (h / spacing).toInt() + 2
+    val ox = w * (0.05f + 0.04f * sin(clock * SeedheTau))
+    val oy = h * 0.98f
+    val reach = h * 0.85f
+    for (r in 0 until rows) {
+        for (c in 0 until cols) {
+            val x = c * spacing + (if (r % 2 == 0) 0f else spacing / 2f)
+            val y = r * spacing
+            val k = 1f - hypot(x - ox, y - oy) / reach
+            if (k <= 0.08f) continue
+            drawCircle(theme.dots, radius = spacing * 0.46f * k, center = Offset(x, y))
+        }
+    }
+}
+
+/** Manga-style speed lines that flash out from the centre when a new line lands. */
+private fun DrawScope.seedheBurst(theme: SeedheTheme, impact: Float, u: Float, seed: Int) {
+    if (impact < 0.05f) return
+    val cx = size.width / 2f
+    val cy = size.height * 0.47f
+    val maxR = hypot(size.width, size.height) / 2f
+    val color = (if (theme.dark) theme.fg else theme.accent).copy(alpha = 0.22f * impact)
+    val n = 26
+    for (i in 0 until n) {
+        val a = (i + seedheHash(seed * 53 + i) * 0.8f) / n * SeedheTau
+        val r0 = maxR * (0.34f + 0.16f * (1f - impact) + seedheHash(seed + i * 7) * 0.10f)
+        val r1 = r0 + maxR * (0.25f + seedheHash(seed + i * 11) * 0.30f)
+        drawLine(
+            color = color,
+            start = Offset(cx + cos(a) * r0, cy + sin(a) * r0),
+            end = Offset(cx + cos(a) * r1, cy + sin(a) * r1),
+            strokeWidth = (1f + seedheHash(seed + i * 3) * 2.5f) * u,
+        )
+    }
+}
+
+/** Giant outlined key word running up the left edge, barely there. */
+private fun DrawScope.seedheGhostWord(paints: SeedhePaints, word: String, theme: SeedheTheme, u: Float) {
+    val p = paints.text
+    p.textSkewX = 0f
+    p.style = NativePaint.Style.FILL
+    p.textSize = 100f
+    val w100 = p.measureText(word).coerceAtLeast(1f)
+    val s = min(size.height * 0.80f * 100f / w100, size.width * 0.55f / SeedheCap)
+    p.textSize = s
+    p.style = NativePaint.Style.STROKE
+    p.strokeWidth = 1.6f * u
+    p.strokeJoin = NativePaint.Join.ROUND
+    p.color = theme.fg.copy(alpha = if (theme.dark) 0.10f else 0.12f).toArgb()
+    val nc = drawContext.canvas.nativeCanvas
+    nc.save()
+    nc.translate(size.width * 0.03f + s * SeedheCap, size.height * 0.5f)
+    nc.rotate(-90f)
+    nc.drawText(word, 0f, 0f, p)
+    nc.restore()
+    p.style = NativePaint.Style.FILL
+}
+
+/** Caution-tape style ticker band with scrolling text. */
+private fun DrawScope.seedheBand(
+    paints: SeedhePaints,
+    phrase: String,
+    centerY: Float,
+    heightPx: Float,
+    angle: Float,
+    bg: Color,
+    fg: Color,
+    clock: Float,
+    direction: Float,
+) {
+    val w = size.width
+    rotate(angle, Offset(w / 2f, centerY)) {
+        drawRect(
+            color = bg,
+            topLeft = Offset(-w * 0.2f, centerY - heightPx / 2f),
+            size = Size(w * 1.4f, heightPx),
+        )
+        val p = paints.band
+        p.style = NativePaint.Style.FILL
+        p.textSize = heightPx * 0.62f
+        p.color = fg.toArgb()
+        val period = p.measureText(phrase)
+        if (period > 1f) {
+            val raw = clock * 3f * period * direction
+            val offset = ((raw % period) + period) % period
+            val baseline = centerY + p.textSize * 0.355f
+            val nc = drawContext.canvas.nativeCanvas
+            var x = offset - period
+            while (x < w * 1.2f) {
+                nc.drawText(phrase, x, baseline, p)
+                x += period
+            }
+        }
+    }
+}
+
+private fun DrawScope.seedheSparkle(path: Path, cx: Float, cy: Float, r: Float, color: Color) {
+    path.reset()
+    val inner = r * 0.22f
+    for (i in 0 until 8) {
+        val a = (i * 45f - 90f) * 0.017453292f
+        val rad = if (i % 2 == 0) r else inner
+        val x = cx + cos(a) * rad
+        val y = cy + sin(a) * rad
+        if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+    }
+    path.close()
+    drawPath(path, color)
+}
+
+private val SeedheSparkAnchors = floatArrayOf(
+    0.12f, 0.20f, 0.86f, 0.27f, 0.92f, 0.70f, 0.09f, 0.74f, 0.78f, 0.15f, 0.24f, 0.80f,
+)
+
+private fun DrawScope.seedheSparkles(
+    path: Path,
+    theme: SeedheTheme,
+    clock: Float,
+    u: Float,
+    seed: Int,
+) {
+    for (i in 0 until SeedheSparkAnchors.size / 2) {
+        val jx = (seedheHash(seed * 13 + i) - 0.5f) * 0.08f
+        val jy = (seedheHash(seed * 17 + i) - 0.5f) * 0.06f
+        val twinkle = 0.65f + 0.35f * sin(clock * SeedheTau * 6f + i * 1.7f)
+        val r = (7f + seedheHash(seed * 7 + i) * 10f) * u * twinkle
+        val color = when (i % 3) {
+            0 -> theme.accent
+            1 -> SeedheTape
+            else -> theme.fg
+        }
+        seedheSparkle(
+            path,
+            size.width * (SeedheSparkAnchors[i * 2] + jx),
+            size.height * (SeedheSparkAnchors[i * 2 + 1] + jy),
+            r,
+            color.copy(alpha = 0.85f),
+        )
+    }
+}
+
+private fun DrawScope.seedheTape(center: Offset, length: Float, thick: Float, angle: Float) {
+    rotate(angle, center) {
+        val topLeft = Offset(center.x - length / 2f, center.y - thick / 2f)
+        drawRect(SeedheTape.copy(alpha = 0.92f), topLeft = topLeft, size = Size(length, thick))
+        drawRect(Color.Black.copy(alpha = 0.10f), topLeft = topLeft, size = Size(length, thick * 0.18f))
+    }
+}
+
+/** Film grain, dust scratches and a dark vignette on top of everything. */
+private fun DrawScope.seedheOverlay(theme: SeedheTheme, frame: Int, impact: Float, u: Float) {
+    val w = size.width
+    val h = size.height
+    val grain = if (theme.dark) SeedheInk else Color.Black
+    for (i in 0 until 70) {
+        val a = seedheHash(frame * 97 + i * 13)
+        val b = seedheHash(frame * 57 + i * 29 + 7)
+        val c = seedheHash(frame * 31 + i * 5 + 3)
+        drawCircle(
+            color = grain.copy(alpha = 0.05f + c * 0.12f),
+            radius = (0.5f + c * 1.1f) * u,
+            center = Offset(a * w, b * h),
+        )
+    }
+    if (frame % 4 == 0) {
+        val x = seedheHash(frame) * w
+        drawLine(grain.copy(alpha = 0.10f), Offset(x, 0f), Offset(x, h), strokeWidth = 0.6f * u)
+    }
+    drawRect(
+        brush = Brush.radialGradient(
+            0.55f to Color.Transparent,
+            1f to theme.vignette,
+            center = Offset(w / 2f, h / 2f),
+            radius = hypot(w, h) / 2f,
+        ),
+    )
+    val flash = impact * impact * impact
+    if (flash > 0.01f) {
+        drawRect((if (theme.dark) theme.fg else theme.accent).copy(alpha = 0.30f * flash))
+    }
+}
+
+private fun DrawScope.seedheNextLine(paints: SeedhePaints, text: String, theme: SeedheTheme, u: Float) {
+    val p = paints.small
+    p.style = NativePaint.Style.FILL
+    p.textSkewX = 0f
+    p.textSize = 13f * u
+    val maxW = size.width * 0.84f
+    val m = p.measureText(text)
+    if (m > maxW) p.textSize = p.textSize * maxW / m
+    p.color = theme.fg.copy(alpha = 0.50f).toArgb()
+    drawContext.canvas.nativeCanvas.drawText(text, size.width / 2f, size.height * 0.835f, p)
 }
 
 /**
- * The artist-specific canvas is selected by [CinematicLyrics]. Keeping this composable
- * artist-agnostic makes it usable with the same parsed lyrics on every playback surface.
+ * Seedhe Maut lyric screen: a street-poster "lyric edit". Every line gets its own look
+ * (slam, stamped labels, justified stack, marker scribble, hollow outline), words land
+ * in time with the vocals, and the whole frame punches on each new line.
  */
-@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun SeedheMautLyricsCanvas(
     lines: List<LyricsEntry>,
@@ -80,309 +688,137 @@ fun SeedheMautLyricsCanvas(
 ) {
     val activeLine = lines.getOrNull(currentIndex)
     val nextLine = lines.getOrNull(currentIndex + 1)
-    val previousLine = lines.getOrNull(currentIndex - 1)
     val gapAfterCurrent = nextLine?.time?.minus(positionMs) ?: Long.MAX_VALUE
     val gapBeforeFirst = lines.firstOrNull()?.time?.minus(positionMs) ?: Long.MAX_VALUE
     val instrumental = lines.isNotEmpty() &&
         (currentIndex < 0 && gapBeforeFirst > 2_500L || currentIndex >= 0 && gapAfterCurrent > 2_500L)
-    val lineProgress = activeLine?.let {
-        val duration = (nextLine?.time ?: (it.time + 4_000L)) - it.time
-        ((positionMs - it.time).toFloat() / duration.coerceAtLeast(1L)).coerceIn(0f, 1f)
-    } ?: 0f
+
+    val words = remember(activeLine, nextLine) {
+        if (activeLine != null) seedheWords(activeLine, nextLine) else emptyList()
+    }
+    val showTitle = instrumental || words.isEmpty()
+    val index = currentIndex.coerceAtLeast(0)
+    val style = remember(index, words.size) { seedheStyleFor(index, words.size) }
+    val lineTheme = remember(index) { seedheThemeFor(index) }
+    val theme = if (showTitle) SeedheThemeDark else lineTheme
+    val keyWord = remember(words) {
+        var best = 0
+        for (i in words.indices) if (words[i].text.length >= words[best].text.length) best = i
+        best
+    }
+    val shortLine = words.size <= 3
 
     val transition = rememberInfiniteTransition(label = "seedheMautBackdrop")
-    val drift by transition.animateFloat(
+    val clock = transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(18_000)),
-        label = "seedheMautDrift",
+        animationSpec = infiniteRepeatable(tween(24_000, easing = LinearEasing)),
+        label = "seedheMautClock",
     )
-    val ambientPulse by transition.animateFloat(
-        initialValue = 0.82f,
-        targetValue = 1.08f,
-        animationSpec = infiniteRepeatable(tween(2_400)),
-        label = "seedheMautAmbientPulse",
+    val breathe = transition.animateFloat(
+        initialValue = 0.96f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(tween(1_600, easing = LinearOutSlowInEasing), RepeatMode.Reverse),
+        label = "seedheMautBreathe",
     )
-    val flash = remember { Animatable(0f) }
-    val slamScale = remember { Animatable(1f) }
+    val impact = remember { Animatable(0f) }
     val shake = remember { Animatable(0f) }
     LaunchedEffect(currentIndex) {
-        flash.snapTo(1f)
-        flash.animateTo(0f, tween(80))
-        if (activeLine != null) {
-            slamScale.snapTo(1.4f)
-            slamScale.animateTo(
-                1f,
-                spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                ),
-            )
-            if (activeLine.text.trim().split(Regex("\\s+")).size <= 3) {
-                shake.snapTo(1f)
-                shake.animateTo(0f, tween(180))
-            }
+        impact.snapTo(1f)
+        launch { impact.animateTo(0f, tween(520, easing = LinearOutSlowInEasing)) }
+        if (shortLine) {
+            shake.snapTo(1f)
+            shake.animateTo(0f, tween(260))
         }
     }
 
-    val grain = remember {
-        Array(96) { index ->
-            InkParticle(
-                x = ((index * 47) % 101) / 100f,
-                y = ((index * 73) % 103) / 100f,
-                radius = 0.45f + (index % 4) * 0.35f,
-                alpha = 0.025f + (index % 5) * 0.009f,
-            )
-        }
-    }
-    val wireframePath = remember { Path() }
-    val inkPath = remember { Path() }
-    val flashAlpha by animateFloatAsState(flash.value, tween(80), label = "seedheMautFlash")
-    val lineAngle = (((currentIndex.coerceAtLeast(0) * 17) % 28 - 14) * (PI / 180.0)).toFloat()
-    val lineScale = 0.84f + (currentIndex.coerceAtLeast(0) % 4) * 0.06f
-    val shortLine = (activeLine?.text?.trim()?.split(Regex("\\s+"))?.size ?: 0) <= 3
-    val textOffset = (sin(drift * (PI * 2.0)) * 10f).toFloat()
-    val visualModes = SeedheVisualMode.values()
-    val visualMode = visualModes[currentIndex.coerceAtLeast(0) % visualModes.size]
+    val paints = remember { SeedhePaints() }
+    val cache = remember { SeedheArrangeCache() }
+    val titleCache = remember { SeedheArrangeCache() }
+    val sparklePath = remember { Path() }
+    val scribblePath = remember { Path() }
+    val titleWords = remember { listOf(SeedheWord("SEEDHE", 0L, 1L), SeedheWord("MAUT", 0L, 1L)) }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .clipToBounds()
+            .graphicsLayer {
+                val sc = 1.025f + 0.05f * impact.value
+                scaleX = sc
+                scaleY = sc
+                translationX = sin(positionMs / 17f) * 7f * shake.value
+                translationY = cos(positionMs / 23f) * 4f * shake.value
+            },
+    ) {
         Canvas(Modifier.fillMaxSize()) {
-            drawRect(SeedheBlack)
+            val w = size.width
+            val h = size.height
+            val u = size.minDimension / 360f
+            val clk = clock.value
+            val imp = impact.value
+            val frame = (positionMs / 55L).toInt()
+            val nc = drawContext.canvas.nativeCanvas
 
-            val crimsonX = size.width * (0.25f + drift * 0.16f)
-            val crimsonY = size.height * (0.20f + sin(drift * (PI * 2.0)).toFloat() * 0.04f)
-            drawCircle(
-                color = SeedheCrimson.copy(alpha = 0.15f + flashAlpha * 0.30f),
-                radius = size.minDimension * 0.64f,
-                center = androidx.compose.ui.geometry.Offset(crimsonX, crimsonY),
-            )
-            drawCircle(
-                color = Color(0xFF24242A).copy(alpha = 0.38f),
-                radius = size.minDimension * 0.56f,
-                center = androidx.compose.ui.geometry.Offset(
-                    size.width * (0.78f - drift * 0.12f),
-                    size.height * 0.78f,
-                ),
-            )
-
-            grain.forEach { particle ->
-                drawCircle(
-                    color = SeedheInk.copy(alpha = particle.alpha),
-                    radius = particle.radius,
-                    center = androidx.compose.ui.geometry.Offset(
-                        particle.x * size.width,
-                        particle.y * size.height,
-                    ),
-                )
+            seedheBackdrop(theme, clk, imp, u)
+            if (!showTitle) {
+                cache.ensure(words, style, w, h, paints.text, index)
+                seedheBurst(theme, imp, u, index)
+                seedheGhostWord(paints, words[keyWord].text, theme, u)
             }
 
-            val center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height / 2f)
-            val wireScale = if (instrumental) ambientPulse * 1.34f else lineScale
-            rotate(lineAngle + sin(drift * (PI * 2.0)).toFloat() * 0.05f, center) {
-                scale(wireScale, center) {
-                    val wireColor = SeedheCyan.copy(alpha = if (instrumental) 0.34f else 0.18f)
-                    wireframePath.reset()
-                    wireframePath.moveTo(size.width * 0.18f, size.height * 0.30f)
-                    wireframePath.lineTo(size.width * 0.82f, size.height * 0.30f)
-                    wireframePath.lineTo(size.width * 0.68f, size.height * 0.70f)
-                    wireframePath.lineTo(size.width * 0.32f, size.height * 0.70f)
-                    wireframePath.close()
-                    drawPath(
-                        path = wireframePath,
-                        color = wireColor,
-                        style = Stroke(width = 1.2f, cap = StrokeCap.Square),
-                    )
-                    drawLine(
-                        color = wireColor,
-                        start = androidx.compose.ui.geometry.Offset(size.width * 0.18f, size.height * 0.30f),
-                        end = androidx.compose.ui.geometry.Offset(size.width * 0.68f, size.height * 0.70f),
-                        strokeWidth = 1.2f,
-                        cap = StrokeCap.Square,
-                    )
-                    drawLine(
-                        color = wireColor,
-                        start = androidx.compose.ui.geometry.Offset(size.width * 0.82f, size.height * 0.30f),
-                        end = androidx.compose.ui.geometry.Offset(size.width * 0.32f, size.height * 0.70f),
-                        strokeWidth = 1.2f,
-                        cap = StrokeCap.Square,
-                    )
-                    if (instrumental) {
-                        drawCircle(
-                            color = SeedheCrimson.copy(alpha = 0.24f),
-                            radius = size.minDimension * 0.16f * ambientPulse,
-                            center = center,
-                            style = Stroke(width = 2.2f),
-                        )
-                    }
-                }
-                when (visualMode) {
-                    SeedheVisualMode.MONOGRAPH -> Unit
-                    SeedheVisualMode.SIGNAL -> {
-                        repeat(18) { index ->
-                            val x = size.width * (index + 1) / 19f
-                            val height = size.height *
-    (0.03f + 0.04f * abs(sin(index * 1.7f + drift * PI * 2.0)).toFloat())
-                            drawLine(
-                                color = SeedheCyan.copy(alpha = 0.16f + index % 3 * 0.04f),
-                                start = androidx.compose.ui.geometry.Offset(x, center.y - height),
-                                end = androidx.compose.ui.geometry.Offset(x, center.y + height),
-                                strokeWidth = if (index % 4 == 0) 3f else 1f,
+            seedheBand(
+                paints, "SEEDHE MAUT  ×  DELHI  ×  ", h * 0.085f, 44f * u, 2.5f,
+                theme.accent, theme.onAccent, clk, -1f,
+            )
+            seedheBand(
+                paints, "ENCORE ABJ  ×  CALM  ×  ", h * 0.915f, 44f * u, -3f,
+                SeedheTape, SeedheBlack, clk, 1f,
+            )
+            seedheSparkles(sparklePath, theme, clk, u, index)
+
+            if (showTitle) {
+                titleCache.ensure(titleWords, SeedheStyle.STACK, w, h, paints.text, 0)
+                val ctr = Offset(w / 2f, h * 0.47f)
+                rotate(-4f, ctr) {
+                    scale(breathe.value, ctr) {
+                        titleWords.forEachIndexed { i, word ->
+                            seedheDrawWord(
+                                nc, paints, word, i, SeedheStyle.STACK, theme,
+                                10_000L, 0f, false, 0, 0f,
                             )
                         }
-                        drawCircle(
-                            color = SeedheCrimson.copy(alpha = 0.18f),
-                            radius = size.minDimension * (0.12f + ambientPulse * 0.035f),
-                            center = center,
-                            style = Stroke(width = 1.5f),
-                        )
-                    }
-                    SeedheVisualMode.GRID -> {
-                        val spacing = size.minDimension / 10f
-                        for (index in 1..9) {
-                            drawLine(
-                                color = SeedheCyan.copy(alpha = 0.10f),
-                                start = androidx.compose.ui.geometry.Offset(index * spacing, 0f),
-                                end = androidx.compose.ui.geometry.Offset(index * spacing, size.height),
-                                strokeWidth = if (index == 5) 1.8f else 0.7f,
-                            )
-                            drawLine(
-                                color = SeedheCyan.copy(alpha = 0.10f),
-                                start = androidx.compose.ui.geometry.Offset(0f, index * spacing),
-                                end = androidx.compose.ui.geometry.Offset(size.width, index * spacing),
-                                strokeWidth = if (index == 5) 1.8f else 0.7f,
-                            )
-                        }
-                        drawRect(
-                            color = SeedheCrimson.copy(alpha = 0.30f),
-                            topLeft = androidx.compose.ui.geometry.Offset(size.width * 0.12f, size.height * 0.18f),
-                            size = androidx.compose.ui.geometry.Size(size.width * 0.76f, size.height * 0.64f),
-                            style = Stroke(width = 1.5f),
-                        )
-                    }
-                    SeedheVisualMode.ORBIT -> {
-                        rotate(drift * 360f, center) {
-                            repeat(3) { ring ->
-                                val diameter = size.minDimension * (0.36f + ring * 0.20f)
-                                drawArc(
-                                    color = if (ring % 2 == 0) SeedheCyan else SeedheCrimson,
-                                    startAngle = 18f + ring * 75f,
-                                    sweepAngle = 118f,
-                                    useCenter = false,
-                                    topLeft = androidx.compose.ui.geometry.Offset(
-                                        center.x - diameter / 2f,
-                                        center.y - diameter / 2f,
-                                    ),
-                                    size = androidx.compose.ui.geometry.Size(diameter, diameter),
-                                    style = Stroke(width = 1.5f),
-                                )
-                            }
-                        }
-                        drawCircle(
-                            color = SeedheInk.copy(alpha = 0.14f),
-                            radius = size.minDimension * 0.08f * ambientPulse,
-                            center = center,
-                        )
                     }
                 }
+            } else {
+                if (style == SeedheStyle.BLOCKS || style == SeedheStyle.SCRIBBLE) {
+                    val slide = imp * 40f * u
+                    seedheTape(Offset(cache.left + 0.04f * w - slide, cache.top - 0.01f * h), 70f * u, 15f * u, -35f)
+                    seedheTape(Offset(cache.right - 0.04f * w + slide, cache.bottom + 0.01f * h), 70f * u, 15f * u, -35f)
+                }
+                if (imp > 0.04f && style != SeedheStyle.BLOCKS) {
+                    val off = imp * 9f * u
+                    val ghostA = (if (theme.accent == SeedheBlack) SeedheBlack else SeedheRed).copy(alpha = 0.60f).toArgb()
+                    val ghostB = SeedheCyan.copy(alpha = 0.55f).toArgb()
+                    words.forEachIndexed { i, word ->
+                        seedheDrawWord(nc, paints, word, i, style, theme, positionMs, cache.padXf, true, ghostA, -off)
+                    }
+                    words.forEachIndexed { i, word ->
+                        seedheDrawWord(nc, paints, word, i, style, theme, positionMs, cache.padXf, true, ghostB, off)
+                    }
+                }
+                words.forEachIndexed { i, word ->
+                    seedheDrawWord(nc, paints, word, i, style, theme, positionMs, cache.padXf, false, 0, 0f)
+                }
+                if (style == SeedheStyle.SCRIBBLE) {
+                    seedheScribble(words[keyWord], positionMs, theme, scribblePath, index)
+                }
+                val upcoming = nextLine?.text?.trim().orEmpty()
+                if (upcoming.isNotEmpty()) seedheNextLine(paints, upcoming.uppercase(), theme, u)
             }
 
-            val inkColor = SeedheCrimson.copy(alpha = 0.16f)
-            repeat(8) { index ->
-                val y = size.height * (0.12f + index * 0.105f)
-                inkPath.reset()
-                inkPath.moveTo(size.width * 0.08f, y)
-                inkPath.cubicTo(
-                    size.width * 0.30f,
-                    y - 10f,
-                    size.width * 0.68f,
-                    y + 9f,
-                    size.width * 0.92f,
-                    y - 4f,
-                )
-                drawPath(
-                    path = inkPath,
-                    color = inkColor,
-                    style = Stroke(width = 1f, cap = StrokeCap.Round),
-                )
-            }
+            seedheOverlay(theme, frame, imp, u)
         }
-
-        if (!instrumental && activeLine != null) {
-            HeroLine(
-                line = activeLine,
-                nextLine = nextLine,
-                positionMs = positionMs,
-                scale = slamScale.value,
-                shake = shake.value,
-                shortLine = shortLine,
-                textOffset = textOffset,
-                modifier = Modifier.align(Alignment.Center),
-            )
-        }
-
-        if (!instrumental) {
-            ModeStamp(
-                mode = visualMode,
-                progress = lineProgress,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(start = 24.dp, top = 26.dp),
-            )
-            Column(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth()
-                    .padding(horizontal = 28.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                previousLine?.let {
-                    Text(
-                        text = it.text,
-                        color = SeedheInk.copy(alpha = 0.25f),
-                        fontSize = 15.sp,
-                        maxLines = 1,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                if (activeLine != null) {
-                    androidx.compose.foundation.layout.Spacer(Modifier.padding(vertical = 44.dp))
-                }
-                nextLine?.let {
-                    Text(
-                        text = it.text,
-                        color = SeedheInk.copy(alpha = 0.25f),
-                        fontSize = 15.sp,
-                        maxLines = 1,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ModeStamp(
-    mode: SeedheVisualMode,
-    progress: Float,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier) {
-        Text(
-            text = "SEEDHE / MAUT",
-            color = SeedheInk.copy(alpha = 0.62f),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 2.sp,
-        )
-        Text(
-            text = "${mode.name}  //  ${(progress * 100).toInt().toString().padStart(2, '0')}",
-            color = SeedheCyan.copy(alpha = 0.72f),
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.2.sp,
-        )
     }
 }
 
@@ -510,126 +946,6 @@ private fun ProfilePeekTag(label: String) {
             .border(1.dp, SeedheInk.copy(alpha = 0.24f), RoundedCornerShape(4.dp))
             .padding(horizontal = 7.dp, vertical = 5.dp),
     )
-}
-
-@Composable
-private fun HeroLine(
-    line: LyricsEntry,
-    nextLine: LyricsEntry?,
-    positionMs: Long,
-    scale: Float,
-    shake: Float,
-    shortLine: Boolean,
-    textOffset: Float,
-    modifier: Modifier = Modifier,
-) {
-    val duration = ((nextLine?.time ?: line.time + 4_000L) - line.time).coerceAtLeast(1L)
-    val lineProgress = ((positionMs - line.time).toFloat() / duration).coerceIn(0f, 1f)
-    val wordData = remember(line, nextLine) { lineWords(line, nextLine) }
-    val hasWordTimings = line.words.orEmpty().isNotEmpty()
-    val text = remember(line, lineProgress, positionMs, wordData, hasWordTimings) {
-        if (hasWordTimings) {
-            buildAnnotatedString {
-                var cursor = 0
-                wordData.forEach { word ->
-                    val start = line.text.indexOf(word.text, cursor).takeIf { it >= cursor } ?: cursor
-                    if (start > cursor) append(line.text.substring(cursor, start))
-                    val progress = ((positionMs - word.startMs).toFloat() / (word.endMs - word.startMs).coerceAtLeast(1L)).coerceIn(0f, 1f)
-                    withStyle(SpanStyle(color = SeedheInk.copy(alpha = 0.38f + progress * 0.62f))) {
-                        append(word.text)
-                    }
-                    cursor = (start + word.text.length).coerceAtMost(line.text.length)
-                }
-                if (cursor < line.text.length) append(line.text.substring(cursor))
-            }
-        } else {
-            AnnotatedString(line.text)
-        }
-    }
-
-    val fill = androidx.compose.ui.graphics.Brush.horizontalGradient(
-        0f to SeedheInk,
-        (lineProgress - 0.05f).coerceIn(0f, 1f) to SeedheInk,
-        (lineProgress + 0.05f).coerceIn(0f, 1f) to SeedheCyan.copy(alpha = 0.45f),
-        1f to SeedheInk.copy(alpha = 0.30f),
-    )
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                translationX = if (shortLine) sin(positionMs / 18f) * 5f * shake else textOffset
-                translationY = if (shortLine) cos(positionMs / 21f) * 3f * shake else 0f
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        if (shortLine) {
-            Text(
-                text = text,
-                color = SeedheInk,
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Black,
-                lineHeight = 52.sp,
-                letterSpacing = (-1.4).sp,
-                textAlign = TextAlign.Center,
-                style = TextStyle(
-                    brush = if (hasWordTimings) null else fill,
-                    shadow = androidx.compose.ui.graphics.Shadow(
-                        color = Color.Black.copy(alpha = 0.75f),
-                        blurRadius = 16f,
-                    ),
-                ),
-            )
-        } else {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                wordData.forEachIndexed { index, word ->
-                    val progress = ((positionMs - word.startMs).toFloat() /
-                        (word.endMs - word.startMs).coerceAtLeast(1L)).coerceIn(0f, 1f)
-                    Text(
-                        text = word.text.trim(),
-                        color = SeedheInk.copy(alpha = if (hasWordTimings) 0.38f + progress * 0.62f else 0.7f + lineProgress * 0.3f),
-                        fontSize = 39.sp,
-                        fontWeight = FontWeight.Black,
-                        lineHeight = 44.sp,
-                        letterSpacing = (-1.1).sp,
-                        modifier = Modifier
-                            .padding(horizontal = 3.dp)
-                            .graphicsLayer {
-                                translationY = sin(index * 0.9f + positionMs / 180f) * 4f
-                            },
-                    )
-                }
-            }
-        }
-        if (lineProgress < 0.15f) {
-            Text(
-                text = text,
-                color = SeedheCrimson.copy(alpha = 0.42f),
-                fontSize = if (shortLine) 48.sp else 39.sp,
-                fontWeight = FontWeight.Black,
-                lineHeight = if (shortLine) 52.sp else 44.sp,
-                letterSpacing = (-1.4).sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.graphicsLayer { translationX = -3f },
-            )
-            Text(
-                text = text,
-                color = SeedheCyan.copy(alpha = 0.38f),
-                fontSize = if (shortLine) 48.sp else 39.sp,
-                fontWeight = FontWeight.Black,
-                lineHeight = if (shortLine) 52.sp else 44.sp,
-                letterSpacing = (-1.4).sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.graphicsLayer { translationX = 3f },
-            )
-        }
-    }
 }
 
 private data class LineWord(val text: String, val startMs: Long, val endMs: Long)
